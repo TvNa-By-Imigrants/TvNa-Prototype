@@ -1,15 +1,24 @@
+import { useLanguage } from '../../contexts/LanguageContext.jsx'
+
 export default function Footer() {
-  return (
-    <footer className="px-6 py-4 bg-(--bg-footer) text-(--text) text-[12px]">
-      <div className="flex justify-center items-center gap-4">
-        <div className="flex w-8 h-8 rounded-full overflow-hidden">
-          <img src="/icons.svg" alt="logo" className="w-full h-full object-fill" />
-        </div>
-        <a href="#" className="font-bold underline hover:text-(--indigo)">About us</a>
-        <a href="#" className="font-bold underline hover:text-(--indigo)">Facebook</a>
-        <a href="#" className="font-bold underline hover:text-(--indigo)">Instagram</a>
-        <a href="#" className="font-bold underline hover:text-(--indigo)">Contact</a>
-      </div>
-    </footer>
-  )
+    const { t } = useLanguage()
+
+    return (
+        <footer className="px-6 py-5 bg-(--bg-footer) text-(--text) text-sm border-t border-(--muted)/10">
+            <div className="max-w-(--max-width) mx-auto flex flex-col sm:flex-row justify-center items-center gap-4">
+                <div className="flex items-center gap-2">
+                    <div className="flex w-8 h-8 rounded-lg overflow-hidden">
+                        <img src="/assets/TvNa.png" alt="logo" className="w-full h-full object-fill" />
+                    </div>
+                    <span className="font-bold text-(--indigo)">TvNa</span>
+                </div>
+                <div className="flex items-center gap-5">
+                    <a href="#" className="font-medium hover:text-(--indigo) transition-colors">{t('footer.about')}</a>
+                    <a href="#" className="font-medium hover:text-(--indigo) transition-colors">{t('footer.facebook')}</a>
+                    <a href="#" className="font-medium hover:text-(--indigo) transition-colors">{t('footer.instagram')}</a>
+                    <a href="#" className="font-medium hover:text-(--indigo) transition-colors">{t('footer.contact')}</a>
+                </div>
+            </div>
+        </footer>
+    )
 }

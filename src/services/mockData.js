@@ -10,11 +10,8 @@ export const derlgData = [
 ]
 
 export const nhameyData = [
-    { title: "MiMtes", image: "/assets/miMtes.webp", description: "Mi mtes hel hel nham pel ngai pleang bussin 10/10. jun o or crush mk nham nv ng after a date or school dg ke sl vinh hx.", type: "restaurant", area: "BKK1", priceRange: { min: 2, max: 5 }, hours: "8:00 AM - 10:00 PM" },
     { title: "Kaixin", image: "/assets/kaixin.webp", description: "Hotpot zin, must try. kron tah mnus jren tix tea for the price i can say that it's really good. nv funmall tt jinh pi nham mi ban der lg", type: "restaurant", area: "BKK1", priceRange: { min: 5, max: 15 }, hours: "11:00 AM - 10:00 PM" },
     { title: "Little Ceaser", image: "/assets/littleceaser.webp", description: "fast food pizza. do i even have anything to say? ts bussin. pizza party after exan", type: "restaurant", area: "Toul Kork", priceRange: { min: 2, max: 5 }, hours: "10:00 AM - 11:00 PM" },
-    { title: "Mi Teanh", image: "/assets/miteanh.webp", description: "A chinese place selling noodle. holly, get a fresh made ramen and a really good vigetable broth for only 2.5$. i reccoment get the duck meat.", type: "restaurant", area: "Chamkar Mon", priceRange: { min: 2, max: 5 }, hours: "9:00 AM - 9:00 PM" },
-    { title: "Saj Ko Ang", image: "/    assets/sajkoang.webp", description: "comfort food, who even say no to this.", type: "restaurant", area: "BKK1", priceRange: { min: 2, max: 5 }, hours: "7:00 AM - 10:00 PM" },
     { title: "Java Creative Café", image: "/assets/java.webp", description: "og cafe since 2000, got art gallery vibes upstairs. good for pretending ur productive while staring at paintings.", type: "cafe", area: "BKK1", priceRange: { min: 3, max: 8 }, hours: "7:00 AM - 9:00 PM" },
     { title: "Brown Coffee BKK1", image: "/assets/browncoffee.webp", description: "the default meetup spot fr. everyone's been here at least once, wifi solid, ac cold, nothing to complain about.", type: "cafe", area: "BKK1", priceRange: { min: 2, max: 5 }, hours: "6:30 AM - 9:00 PM" },
     { title: "Backyard Cafe", image: "/assets/backyard.webp", description: "healthy food ppl who still wanna vibe. avo toast szn, good if ur bulking or just wanna feel better ab urself.", type: "cafe", area: "BKK1", priceRange: { min: 4, max: 9 }, hours: "7:00 AM - 8:00 PM" },
@@ -35,7 +32,6 @@ export const favouriteData = [
     { title: "Tatsuya Bookstore", image: "/assets/tsutayabookstore.webp", description: "pherk matcha ther performative boss", type: "cafe", area: "BKK1", priceRange: { min: 2, max: 5 }, hours: "8:00 AM - 9:00 PM" },
     { title: "KohNorea", image: "/assets/noreaRiverSide.webp", description: "der lg tv mdg te", type: "park", area: "Chamkar Mon", priceRange: { min: 0, max: 0 }, hours: "5:00 AM - 10:00 PM" },
     { title: "Little Ceaser", image: "/assets/littleceaser.webp", description: "fast food pizza.", type: "restaurant", area: "Toul Kork", priceRange: { min: 2, max: 5 }, hours: "10:00 AM - 11:00 PM" },
-    { title: "Mi Teanh", image: "/assets/miteanh.webp", description: "A chinese place selling noodle...", type: "restaurant", area: "Chamkar Mon", priceRange: { min: 2, max: 5 }, hours: "9:00 AM - 9:00 PM" }
 ]
 
 export const communityData = [
@@ -105,4 +101,59 @@ export const places = [
     { name: "Tuol Sleng Museum", lat: 11.5494, lng: 104.9178, desc: "Museum documenting Cambodia's history" },
     { name: "Russian Market", lat: 11.5420, lng: 104.9190, desc: "Popular market for souvenirs and clothing" },
     { name: "AEON Mall", lat: 11.5500, lng: 104.9300, desc: "Modern shopping mall with dining and entertainment" }
+]
+
+export const businessPartners = [
+    {
+        id: 1,
+        name: "Tatsuya Bookstore",
+        address: "Street 240, BKK1, Phnom Penh",
+        category: "cafe",
+        phone: "+855 12 345 678",
+        hours: "8:00 AM - 9:00 PM",
+        priceRange: { min: 2, max: 5 },
+        description: "Cozy bookstore cafe with matcha, perfect for studying",
+        image: "/assets/tsutayabookstore.webp",
+        lat: 11.5564,
+        lng: 104.9282
+    },
+    {
+        id: 2,
+        name: "Kaixin Hotpot",
+        address: "Funmall, Toul Kork, Phnom Penh",
+        category: "restaurant",
+        phone: "+855 92 123 456",
+        hours: "11:00 AM - 10:00 PM",
+        priceRange: { min: 5, max: 15 },
+        description: "Popular hotpot spot, great for groups",
+        image: "/assets/kaixin.webp",
+        lat: 11.5600,
+        lng: 104.9100
+    },
+    {
+        id: 3,
+        name: "Coconut Park Cafe",
+        address: "Coconut Park, Chamkar Mon, Phnom Penh",
+        category: "cafe",
+        phone: "+855 11 222 333",
+        hours: "7:00 AM - 8:00 PM",
+        priceRange: { min: 1, max: 4 },
+        description: "Outdoor cafe in the park, great for morning coffee",
+        image: "/assets/coconutpark.webp",
+        lat: 11.5530,
+        lng: 104.9200
+    },
+    {
+        id: 4,
+        name: "Funnifun Arcade",
+        address: "BKK1, Phnom Penh",
+        category: "arcade",
+        phone: "+855 96 555 666",
+        hours: "10:00 AM - 11:00 PM",
+        priceRange: { min: 5, max: 15 },
+        description: "Gaming arcade with claw machines and more",
+        image: "/assets/funnifun.webp",
+        lat: 11.5580,
+        lng: 104.9290
+    }
 ]

@@ -2,7 +2,7 @@
 
 **Project Name:** TvNa — Community-Driven Place Discovery Platform  
 **Authors:** LancD, ashxio, VorngViseth  
-**Last Updated:** July 24, 2026  
+**Last Updated:** July 25, 2026  
 
 ---
 
@@ -15,53 +15,68 @@ The platform categorizes places into three Khmer-named sections:
 - **NhamEy** (ញ៉ាំអី) — "eat what" (restaurants, food spots)
 - **NhJolJit** (ចូលចិត្ត) — "favourites" (saved places)
 
-Built as a **frontend-only static site** using vanilla HTML/CSS/JS with **Tailwind CSS v4** and **Leaflet.js** for interactive maps. No backend, no database, no framework — pure web standards with a custom fetch-based component injection system.
+Built as a **React SPA** using **React 19 + Vite 8 + Tailwind CSS v4 + React Router v7**. No backend, no database — frontend-only with static mock data and Google Gemini AI integration for plan generation.
 
 ---
 
 ## System Architecture & File Tree
 
 ```
-TvNa.v2/
-├── .env                          # Google Maps API key (unused — Leaflet uses OSM)
-├── .gitignore                    # node_modules, logs, OS files
+TvNa/
+├── .env                          # Google Gemini API key
+├── .gitignore                    # node_modules, dist, .env
 ├── package.json                  # Project config & build scripts
 ├── package-lock.json             # Dependency lock file
-├── README.md                     # Minimal project readme
+├── vite.config.js                # Vite + Tailwind plugin config
 ├── CLAUDE.md                     # This file — project review & specification
-├── tailwind.config.js            # Empty (0 bytes) — all config in input.css
 │
-├── src/                          # Source files
-│   ├── css/
-│   │   └── input.css             # Tailwind entry + theme + component classes (428 lines)
-│   ├── js/
-│   │   ├── script.js             # Core: header/footer load, auth, tabs, cards (390 lines)
-│   │   ├── data.js               # All data arrays & objects (92 lines)
-│   │   ├── renderCards.js        # Card & feed post rendering functions (66 lines)
-│   │   ├── community.js          # Community feed logic (44 lines)
-│   │   ├── map.js                # Leaflet map + search (81 lines)
-│   │   └── profile.js            # Profile page logic (78 lines)
+├── src/
+│   ├── main.jsx                  # Entry point — BrowserRouter + LanguageProvider
+│   ├── App.jsx                   # Route definitions + Header/Footer layout
+│   ├── index.css                 # Tailwind entry + theme tokens + component classes
+│   │
 │   ├── pages/
-│   │   ├── index.html            # Home page with tabs (115 lines)
-│   │   ├── community.html        # Facebook-style community feed (44 lines)
-│   │   ├── map.html              # Interactive map page (51 lines)
-│   │   ├── profile.html          # User profile page (71 lines)
-│   │   └── favourited.html       # Favourites page (34 lines)
+│   │   ├── Home.jsx              # Home page with tabs, carousels, hero slider
+│   │   ├── PlanRequest.jsx       # AI plan request page (form + TvNaAI modal)
+│   │   ├── PlanResult.jsx        # Generated plan results with itinerary timeline
+│   │   ├── Map.jsx               # Interactive Leaflet map with search
+│   │   ├── Community.jsx         # Community feed with modal post form
+│   │   ├── Profile.jsx           # User profile page (dynamic slug routing)
+│   │   └── Favourited.jsx        # Saved/favourited places page
+│   │
 │   ├── components/
-│   │   ├── header.html           # Nav header + mobile overlay + auth overlays (53 lines)
-│   │   ├── footer.html           # Footer with links (11 lines)
-│   │   ├── signin.html           # Sign-in modal (91 lines)
-│   │   ├── signup.html           # Sign-up modal (108 lines)
-│   │   └── addPlace.html         # Add place form overlay (63 lines)
-│   └── assets/img/               # 24 WebP images (places, avatars, logos, social)
+│   │   ├── layout/
+│   │   │   ├── Header.jsx        # Sticky header, nav, theme toggle, language toggle
+│   │   │   └── Footer.jsx        # Footer with links
+│   │   ├── cards/
+│   │   │   ├── PlaceCard.jsx     # Place card with "Go Now" / "Saved" buttons
+│   │   │   ├── FeedPostCard.jsx  # Community feed post card
+│   │   │   └── ItineraryStepCard.jsx  # Plan itinerary step with remove button
+│   │   ├── plan/
+│   │   │   ├── IntentForm.jsx    # Quick plan form (budget, group, duration, etc.)
+│   │   │   ├── JuyRoForm.jsx     # "Find a place" form (category, tvrean, area)
+│   │   │   ├── MoodSelector.jsx  # Mood picker for plan generation
+│   │   │   ├── AddStopPicker.jsx # Add stop picker for itinerary
+│   │   │   ├── ItineraryTimeline.jsx  # Plan result timeline with add/remove
+│   │   │   ├── AIThinkingState.jsx    # Loading animation for AI generation
+│   │   │   └── TvNaAIModal.jsx   # Free-text AI chat modal
+│   │   └── modals/
+│   │       ├── SignInModal.jsx   # Sign-in modal
+│   │       ├── SignUpModal.jsx   # Sign-up modal
+│   │       └── AddPlaceModal.jsx # Add place form overlay
+│   │
+│   ├── contexts/
+│   │   └── LanguageContext.jsx   # EN/KH language provider with translations
+│   │
+│   ├── services/
+│   │   ├── mockData.js           # Static data arrays (places, posts, profiles)
+│   │   ├── gemini.js             # Google Gemini AI API integration
+│   │   ├── suggestionEngine.js   # Place suggestion/filtering engine
+│   │   └── mapLinks.js           # Google Maps search link generator
+│   │
+│   └── assets/                   # WebP images (places, avatars, logos)
 │
-├── dist/                         # Build output
-│   ├── css/output.css            # Compiled Tailwind CSS (minified)
-│   ├── js/                       # Copied JS files
-│   ├── pages/                    # Copied HTML files
-│   └── assets/img/               # Copied images
-│
-└── node_modules/                 # tailwindcss + @tailwindcss/cli + dependencies
+└── dist/                         # Production build output
 ```
 
 ---
@@ -70,21 +85,21 @@ TvNa.v2/
 
 | Category | Technology | Version | Notes |
 |----------|-----------|---------|-------|
-| **CSS Framework** | Tailwind CSS | ^4.1.17 | v4 with `@import "tailwindcss"` syntax |
-| **CLI** | @tailwindcss/cli | ^4.1.17 | Build tool for CSS compilation |
-| **Maps** | Leaflet.js | 1.9.4 | Loaded via CDN (unpkg), OpenStreetMap tiles |
+| **Framework** | React | ^19.2.7 | Functional components, hooks |
+| **Build Tool** | Vite | ^8.1.1 | Fast dev server + production build |
+| **CSS Framework** | Tailwind CSS | ^4.3.3 | v4 with `@import "tailwindcss"` syntax |
+| **Routing** | react-router-dom | ^7.18.1 | Client-side SPA routing |
+| **Maps** | Leaflet.js | 1.9.4 | Via react-leaflet, OpenStreetMap tiles |
 | **Icons** | Material Symbols Outlined | — | Google Fonts, loaded via CDN |
-| **Module System** | ES Modules | Native | `type="module"` in script tags |
-| **Runtime** | Node.js (dev) | — | For build tooling only |
-| **Build Copy** | cpx | — | File copying (via npm scripts) |
-
-**Notable:** No bundler (Webpack/Vite), no framework (React/Vue), no backend, no database. Pure vanilla HTML/CSS/JS with Tailwind.
+| **UI Icons** | lucide-react | ^1.26.0 | React icon components |
+| **AI** | Google Gemini | — | Plan generation via API |
+| **Icons** | Material Symbols Outlined | — | Google Fonts, loaded via CDN |
 
 ---
 
 ## Dual-Theme Visual Identity & Design System
 
-The visual identity operates seamlessly in both **Dark Mode** and **Light Mode** with smooth 500ms color transitions.
+The visual identity operates seamlessly in both **Dark Mode** and **Light Mode** with smooth color transitions.
 
 ### Color Token Specifications
 
@@ -112,7 +127,6 @@ The visual identity operates seamlessly in both **Dark Mode** and **Light Mode**
 ```css
 @theme {
     --max-width: 1100px;
-    --shadow: 0 5px 5px rgba(0,0,0,0.15);
 }
 ```
 
@@ -120,221 +134,181 @@ The visual identity operates seamlessly in both **Dark Mode** and **Light Mode**
 
 | Class | Animation | Duration | Usage |
 | :--- | :--- | :--- | :--- |
-| `.animate-press` | Scale 1 → 0.96 → 1 | 120ms | Button press feedback |
+| `.animate-fadeIn` | Fade in | 300ms | Card/modal entrance |
+| `.animate-fadeOut` | Fade out | 300ms | Card/modal exit |
+| `.animate-slideIn` | Slide from left | 300ms | Mobile menu open |
+| `.animate-slideOut` | Slide to left | 300ms | Mobile menu close |
+| `.animate-scaleIn` | Scale 0.95 → 1 | 200ms | Modal entrance |
 | `.animated-slide` | Infinite 3-image carousel | 8s cycle | Home page hero slider |
-| `.animated-slideIn` | Slide from left (-100% → 0) | 300ms | Mobile menu open |
-| `.animated-slideOut` | Slide to left (0 → -100%) | 300ms | Mobile menu close |
-
-### Global Transition
-
-```css
-* { @apply transition-colors duration-500; }
-```
-
-All elements smoothly transition colors when toggling between dark/light modes.
+| `.animate-pulse` | Pulse effect | infinite | Sparkle icon |
+| `.animate-spin` | Rotation | 1s | Loading spinner |
 
 ---
 
-## Technical Implementation Details
+## Routing
 
-### Component Loading System (No Framework)
+Client-side routing via `react-router-dom` v7:
 
-The app uses a **custom fetch-based component injection** pattern:
+| Path | Component | Description |
+|------|-----------|-------------|
+| `/` | `Home` | Home page with tabs, carousels, hero slider |
+| `/plan` | `PlanRequest` | AI plan request (form + TvNaAI modal) |
+| `/plan/result` | `PlanResult` | Generated plan with itinerary timeline |
+| `/map` | `Map` | Interactive Leaflet map with search |
+| `/community` | `Community` | Community feed with modal post form |
+| `/profile/:slug` | `Profile` | User profile (dynamic slug) |
+| `/favourited` | `Favourited` | Saved/favourited places |
 
-1. **`script.js`** is loaded on every page via `<script type="module">`
-2. On init, it fetches `header.html` and `footer.html` and injects them into `<div id="header">` and `<div id="footer">`
-3. The header contains empty overlay containers (`signinOverlay`, `signupOverlay`) that get populated by additional fetches
-4. Each page can load additional JS modules (e.g., `community.js`, `profile.js`, `map.js`)
-
-```
-Page Load → script.js init() → loadHeader() + loadFooter() → inject components
-                                    ↓
-                              loadAuth('signin') + loadAuth('signup')
-                                    ↓
-                              Page-specific modules (community.js, map.js, profile.js)
-```
-
-### Routing
-
-**No router.** Navigation is via standard `<a href>` links between static HTML pages:
-
-| Page | Path | Navigation Source |
-| :--- | :--- | :--- |
-| Home | `index.html` | Header nav "TvNa" |
-| Community | `community.html` | Header nav "Community" |
-| Map | `map.html` | Header nav "Map" |
-| Profile | `profile.html?user=slug` | Community post usernames |
-| Favourites | `favourited.html` | Header nav "Favourited" |
-
-### Tab System (index.html)
-
-Client-side tab switching using `data-target` attributes:
-- Three tabs: `tvna` (home with carousels), `derlg` (hangout grid), `nhamey` (food grid)
-- Clicking a tab shows/hides `<section>` elements with `.hidden-content` class
-- Updates the main title text dynamically
-- Hides the animated slider when not on the `tvna` tab
-- First tab auto-clicks on page load
-
-### Data Flow
-
-```
-data.js (static arrays) → renderCards.js / community.js / profile.js → DOM generation → HTML containers
-```
-
-All data is **static/hardcoded**. No API calls, no localStorage for user data. Theme preference is stored in `localStorage.theme`.
+Layout structure: `Header` → `<Outlet />` (page content) → `Footer`, wrapped in a flex column with `min-h-screen`.
 
 ---
 
 ## Pages & Features
 
-### Home Page (`index.html`)
+### Home Page (`src/pages/Home.jsx`)
 
 - **Animated hero slider**: 3 images auto-rotating on an 8s cycle
 - **Tab navigation**: TvNa / DerLg / NhamEy with Material Symbols icons
-- **TvNa tab**: Two horizontal scrollable carousels (DerLg + NhamEy) with left/right scroll buttons (400px scroll amount)
+- **TvNa tab**: Horizontal scrollable carousels (Featured Partners, DerLg, NhamEy) with left/right scroll buttons
 - **DerLg tab**: Card grid of hangout places
 - **NhamEy tab**: Card grid of food places
-- **Cards**: 360×480px, image + title + description + "Jam Tv" (Go together) and "Tv Lv" (Go now) buttons
+- **Cards**: Image + title + description + "Go Now" (links to Google Maps) and "Saved" (links to /favourited) buttons
 
-### Community Page (`community.html`)
+### Plan Request Page (`src/pages/PlanRequest.jsx`)
 
-- **Facebook-style single-column feed** (~500px centered)
-- **Create post card**: "What's on your mind?" button (opens add-place overlay) + Photo/Place action buttons
+- **Two options**: Quick Form (structured inputs) or TvNaAI (free-text chat)
+- **Quick Form**: Budget, group size, duration, start time, category, tvrean, area, mood
+- **TvNaAI Modal**: Free-text input sent to Gemini AI for plan generation
+- **Loading state**: Spinner animation during AI generation
+- **Error handling**: Displays API errors to user
+
+### Plan Result Page (`src/pages/PlanResult.jsx`)
+
+- **Itinerary timeline**: Visual timeline of planned stops
+- **Add/Remove stops**: "+" buttons between stops open JuyRoForm to find new places
+- **JuyRoForm**: Filter by category (DerLg/NhamEy/Tvrean), tvrean sub-filter (Cafe/Library), area search
+- **Suggestions**: Filtered place cards with "Add" button
+
+### Community Page (`src/pages/Community.jsx`)
+
+- **Facebook-style single-column feed** (~550px centered)
+- **Create post card**: "What's on your mind?" button + Photo/Place action buttons
+- **Modal post form**: Opens as overlay with:
+  - Title input
+  - Category toggle (DerLg / NhamEy)
+  - Image upload area (dashed border, multi-file with preview)
+  - Description textarea
+  - Submit button
 - **Feed posts**: User avatar + name (clickable → profile), description, full-width image, Like/Comment/Share buttons
-- **Floating "ADD PLACE" button**: Fixed bottom-right, opens add-place overlay
-- **Profile linking**: Clicking username/avatar navigates to `profile.html?user=slug`
+- **Profile linking**: Clicking username/avatar navigates to `/profile/:slug`
 
-### Map Page (`map.html`)
+### Map Page (`src/pages/Map.jsx`)
 
-- **Search bar**: Autocomplete dropdown filtering 8 Phnom Penh landmarks
-- **Leaflet map**: Centered on Phnom Penh `[11.5564, 104.9282]`, zoom 13, OpenStreetMap tiles
+- **Leaflet map**: Centered on Phnom Penh `[11.5564, 104.9282]`, OpenStreetMap tiles
 - **8 markers**: Royal Palace, Central Market, Wat Phnom, Independence Monument, Sisowath Quay, Tuol Sleng Museum, Russian Market, AEON Mall
-- **Interactions**: Type to filter → click result → map flies to location + opens popup
-- **Z-index**: Map set to `z-0` to stay behind header (`z-50`) and mobile overlay (`z-9999`)
+- **Search**: Filter markers by name, fly to location on select
 
-### Profile Page (`profile.html`)
+### Profile Page (`src/pages/Profile.jsx`)
 
-- **Dynamic profile**: Loaded from URL query parameter `?user=slug`
+- **Dynamic profile**: Loaded from URL parameter `:slug`
 - **Cover photo**: Colored background (per-profile hex color)
-- **Avatar**: 120px circular, overlapping cover boundary
+- **Avatar**: Circular profile picture
 - **User info**: Name, username, bio, location, join date
 - **Stats row**: Posts, Followers, Following counts
 - **Posts feed**: Filters community posts by matching `profileSlug`
-- **Edit profile button**: Non-functional (demo)
-- **Not found state**: For invalid slugs, shows "User Not Found" with back link
+- **Back link**: "← Back to Community"
 
-### Favourites Page (`favourited.html`)
+### Favourited Page (`src/pages/Favourited.jsx`)
 
 - **Card grid**: 1 col mobile, 2 cols sm, 3 cols lg
-- **Favourited places**: Same card component as index page
-- **Data**: Static `favouriteData` array from `data.js`
+- **Favourited places**: Same PlaceCard component as home page
+- **Data**: Static `favouriteData` array from mockData.js
 
 ---
 
 ## Components
 
-### Header (`header.html`)
+### Header (`src/components/layout/Header.jsx`)
 
 - Sticky header with logo, brand name "TvNa" in indigo
 - **Hamburger menu** (visible below `lg` breakpoint) for mobile
 - **Theme toggle**: Dark/light mode with `localStorage` persistence
-- **Desktop nav**: TvNa, Favourited, Community, Map links
-- **Sign-in button**: Purple (#741EFF), opens sign-in modal
-- **Mobile overlay**: Slide-in panel (animated with `animated-slideIn`/`animated-slideOut`)
-- **Auth overlay containers**: Empty divs populated by `loadAuth()` fetches
+- **Language toggle**: EN/KH switch with `localStorage` persistence
+- **Desktop nav**: TvNa, Plan, Favourited, Community, Map links (all translated)
+- **Sign-in button**: Opens SignInModal
+- **Mobile overlay**: Slide-in panel with navigation links
+- **Auth modals**: SignInModal + SignUpModal with switch capability
 
-### Footer (`footer.html`)
+### Footer (`src/components/layout/Footer.jsx`)
 
-- Logo + links: About us, Facebook, Instagram, Contact
-- Compact 12px text with indigo hover states
+- Logo + links: About us, Facebook, Instagram, Contact (all translated)
+- Compact text with indigo hover states
 
-### Sign-in Modal (`signin.html`)
+### PlaceCard (`src/components/cards/PlaceCard.jsx`)
 
-- Email/password fields with Material Symbols icons
-- Show/hide password toggle
-- "Remember me" checkbox, "Forgot password?" link
-- Social login buttons (Google, Facebook) — non-functional
-- "Sign up" link to switch to signup modal
+- Image, title, description
+- **"Saved" button**: Links to `/favourited`
+- **"Go Now" link**: Opens Google Maps search for the place
 
-### Sign-up Modal (`signup.html`)
+### FeedPostCard (`src/components/cards/FeedPostCard.jsx`)
 
-- Username, email, password, confirm password fields
-- **Password match validation**: Real-time comparison with error message
-- Social login buttons — non-functional
-- "Sign in" link to switch back to signin modal
+- User avatar + name (clickable → profile)
+- Post description
+- Full-width image
+- Like / Comment / Share buttons
 
-### Add Place Form (`addPlace.html`)
+### IntentForm (`src/components/plan/IntentForm.jsx`)
 
-- Form titled "HvKneaDerJmuy" (ហៅកន្លែងដ៏រីករាយ — "Call an interesting place")
-- Fields: Name, Address, Category buttons (DerLg/NhamEy)
-- **Image upload**: Drag-drop area with multi-image preview grid (3 cols mobile, 5 cols md+)
-- Textarea for additional info (price range, hours, environment)
-- "Save & Submit" button
+- Budget, group size, duration, start time inputs
+- Category toggle (NhamEy / DerLg / Both)
+- Tvrean toggle (None / Cafe / Library)
+- Area text input
+- Mood selector
+- Submit button → calls Gemini AI
+
+### JuyRoForm (`src/components/plan/JuyRoForm.jsx`)
+
+- Category toggle (NhamEy / DerLg / Tvrean)
+- Tvrean sub-filter (Any / Cafe / Library) — visible when Tvrean selected
+- Area text input
+- "Find Places" button → calls suggestionEngine
+- Suggestions list with "Add" buttons
+
+### TvNaAIModal (`src/components/plan/TvNaAIModal.jsx`)
+
+- Free-text chat interface
+- Sends message to Gemini AI
+- Displays AI response as generated plan
+
+### Modals (`src/components/modals/`)
+
+- **SignInModal**: Email/password fields, show/hide password, social login buttons
+- **SignUpModal**: Username, email, password, confirm password with real-time validation
+- **AddPlaceModal**: Name, address, category, image upload, info textarea
 
 ---
 
-## JavaScript Modules
+## Language System (`src/contexts/LanguageContext.jsx`)
 
-### `script.js` — Core Module (390 lines)
+Lightweight context-based i18n system:
 
-Loaded on **every page**. Responsibilities:
+- **Provider**: `LanguageProvider` wraps the app in `main.jsx`
+- **State**: `language` ('en' | 'kh'), persisted to `localStorage`
+- **Hook**: `useLanguage()` returns `{ language, toggleLanguage, t }`
+- **Translation function**: `t(key)` — dot-notation key lookup (e.g., `t('nav.plan')`)
+- **Toggle**: EN ↔ KH button in Header (shows "EN" or "KH")
+- **Khmer style**: Transliterated romanization (e.g., "Planh", "NhJolJit", "SaHaKomn") matching existing codebase convention
 
-| Function | Purpose |
-| :--- | :--- |
-| `init()` | Entry point — calls `loadHeader()` + `loadFooter()` |
-| `loadHeader()` | Fetches `header.html`, injects into `#header`, initializes header logic |
-| `loadFooter()` | Fetches `footer.html`, injects into `#footer` |
-| `loadAuth(type)` | Fetches `signin.html`/`signup.html` into overlay containers |
-| `initAuth(type)` | Wires close button + backdrop click to close modals |
-| `initSignInButton()` | Opens sign-in overlay on button click |
-| `initAuthSwitch()` | Toggles between signin/signup modals |
-| `initHeader()` | Theme toggle (localStorage), hamburger menu open/close |
-| `loadAddplace()` | Fetches add-place form, wires close button, image upload preview |
-| Tab switching | `.tab-link` click handlers, show/hide tab content |
-| Card rendering | Renders favourite, derlg, nhamey cards on DOMContentLoaded |
-| Scroll buttons | Horizontal scroll with 400px amount, visibility toggle |
-| Password toggle | Show/hide password on signin/signup forms |
-| Password validation | Real-time password match checking on signup |
+### Translation Keys
 
-### `data.js` — Static Data Store (92 lines)
-
-Exports all data arrays:
-
-| Export | Type | Count | Description |
-| :--- | :--- | :--- | :--- |
-| `derlgData` | `Place[]` | 5 | Hangout places (Tatsuya Bookstore, Funnifun, Playroom, KohNorea, Coconut Park) |
-| `nhameyData` | `Place[]` | 5 | Food places (MiMtes, Kaixin, Little Ceaser, Mi Teanh, Saj Ko Ang) |
-| `favouriteData` | `Place[]` | 4 | Favourited items |
-| `communityData` | `CommunityPost[]` | 4 | Community posts with user info + profileSlug |
-| `profilesData` | `Object` | 4 | User profiles (chayy, dara, sophea, ashxioo) |
-
-### `renderCards.js` — DOM Rendering (66 lines)
-
-| Function | Purpose |
-| :--- | :--- |
-| `renderCards(data, container)` | Renders place cards (image, title, description, action buttons) |
-| `renderCardsCommunity(data, container)` | Renders Facebook-style feed posts (avatar, name, description, image, like/comment/share) |
-
-### `community.js` — Community Feed (44 lines)
-
-- Injects "create post" card at top of `#CommunityFeed`
-- Creates posts wrapper with `flex flex-col gap-5` layout
-- Calls `renderCardsCommunity()` to render posts
-- Wires create-post button to trigger the add-place overlay
-
-### `map.js` — Map Logic (81 lines)
-
-- Initializes Leaflet map centered on Phnom Penh
-- Adds 8 markers with popups
-- Implements search input with autocomplete dropdown
-- `selectPlace(place)`: Flies to location (zoom 15, 0.8s animation) + opens popup + closes dropdown
-
-### `profile.js` — Profile Page (78 lines)
-
-- Reads `?user=slug` from URL params
-- Populates cover color, avatar, name, username, bio, location, join date, stats
-- Filters community posts by `profileSlug` and renders them
-- Shows "User Not Found" state for invalid slugs with back link
+| Section | Keys |
+|---------|------|
+| `nav` | tvna, plan, favourited, community, map, signin |
+| `card` | goNow, saved |
+| `home` | tabTvna, tabDerlg, tabNhamey |
+| `community` | placeholder, photo, place, post, cancel |
+| `favourited` | title |
+| `footer` | about, facebook, instagram, contact |
 
 ---
 
@@ -344,8 +318,12 @@ Exports all data arrays:
 ```js
 {
     title: string,           // Display name
-    image: "../assets/img/xxx.webp",  // Relative image path
-    description: string      // Place description
+    image: string,           // Image path (e.g., "/assets/place.webp")
+    description: string,     // Place description
+    type: string,            // Category type (cafe, restaurant, park, arcade, mall)
+    area: string,            // Area in Phnom Penh (e.g., "BKK1", "Toul Kork")
+    priceRange: { min: number, max: number },  // Price range in USD
+    hours: string            // Operating hours (e.g., "8:00 AM - 9:00 PM")
 }
 ```
 
@@ -389,36 +367,63 @@ Exports all data arrays:
 
 ---
 
+## Services
+
+### `mockData.js` — Static Data Store
+
+| Export | Type | Count | Description |
+| :--- | :--- | :--- | :--- |
+| `derlgData` | `Place[]` | 6 | Hangout places (bookstores, arcades, parks, malls) |
+| `nhameyData` | `Place[]` | 17 | Food places (restaurants, cafes) |
+| `favouriteData` | `Place[]` | 3 | Favourited items |
+| `communityData` | `CommunityPost[]` | 4 | Community posts with user info + profileSlug |
+| `profilesData` | `Object` | 4 | User profiles (chayy, dara, sophea, ashxioo) |
+| `places` | `MapPlace[]` | 8 | Map markers (Phnom Penh landmarks) |
+| `businessPartners` | `Place[]` | 4 | Featured partner places |
+
+### `gemini.js` — Google Gemini AI Integration
+
+- `generatePlanFromForm(formData)` — Generates plan from structured form data
+- `generatePlanFromText(text)` — Generates plan from free-text input
+- Uses Gemini 2.0 Flash model
+- Returns structured plan with stops array
+
+### `suggestionEngine.js` — Place Suggestion Engine
+
+- `suggestPlaces({ category, tvrean, area })` — Filters places by category, tvrean type, and area
+- Combines derlgData + nhameyData pools
+- Returns filtered array of matching places
+
+### `mapLinks.js` — Map Link Generator
+
+- `goNowLink(title)` — Returns Google Maps search URL for a place name
+
+---
+
 ## Build Process
 
 ### npm Scripts
 
 ```json
 "scripts": {
-    "build-css": "tailwindcss -i ./src/css/input.css -o ./dist/css/output.css --minify",
-    "watch-css": "tailwindcss -i ./src/css/input.css -o ./dist/css/output.css --watch",
-    "copy-html": "cpx \"src/*.html\" dist/",
-    "copy-js": "cpx \"src/js/**/*\" dist/js",
-    "copy-assets": "cpx \"src/assets/**/*\" dist/assets",
-    "build": "npm run build-css && npm run copy-html && npm run copy-js && npm run copy-assets",
-    "dev": "npm run watch-css"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "oxlint src"
 }
 ```
 
 ### Build Pipeline
 
-1. **`build-css`** — Compiles Tailwind from `src/css/input.css` → `dist/css/output.css` (minified)
-2. **`copy-html`** — Copies HTML files to `dist/`
-3. **`copy-js`** — Copies `src/js/**/*` → `dist/js/`
-4. **`copy-assets`** — Copies `src/assets/**/*` → `dist/assets/`
+1. **Vite** compiles JSX modules, bundles assets
+2. **Tailwind CSS v4** plugin processes utility classes
+3. Output goes to `dist/` directory
 
 ### Dev Mode
 
 ```
-npm run dev    # Watches CSS for changes, auto-recompiles
+npm run dev    # Starts Vite dev server with HMR
 ```
-
-No live-reload server — static files are opened directly or served separately.
 
 ---
 
@@ -428,22 +433,23 @@ All custom component classes defined in `@layer components`:
 
 | Class | Usage | Key Styles |
 | :--- | :--- | :--- |
-| `.btn` | Primary buttons | Indigo bg, white text, rounded-full, shadow, hover darken |
-| `.active-tab` | Active tab indicator | Indigo color + border (forced with `!important`) |
-| `.card` | Place cards | 360×480px, rounded-xl, shadow, hover scale-105 |
-| `.card-image` | Card images | Full width, 188px height, object-cover |
+| `.btn` | Primary buttons | Indigo bg, white text, rounded-xl, shadow, hover darken |
+| `.btn-outline` | Outlined buttons | Border, transparent bg, hover fill |
+| `.btnClick` | Clickable buttons | Pointer cursor, transition |
+| `.card` | Place cards | Fixed width, rounded-xl, shadow, hover scale |
+| `.card-image` | Card images | Full width, fixed height, object-cover |
 | `.card-body` | Card content area | Padding, flex column, gap |
 | `.card-title` | Card titles | Large, semibold |
-| `.card-description` | Card body text | Small, muted color, whitespace-normal |
+| `.card-description` | Card body text | Small, muted color |
 | `.card-grid` | Card grid container | 1/2/3 cols responsive, gap-8 |
-| `.feed-container` | Community feed wrapper | Max 550px, centered, flex column, gap-4 |
+| `.feed-container` | Community feed wrapper | Max 550px, centered, flex column |
 | `.create-post` | Create post card | Card-bg, rounded-xl, shadow, padding |
 | `.create-post-btn` | "What's on your mind?" | Rounded pill, bg-input, hover effect |
 | `.create-post-action` | Photo/Place buttons | Flex, gap, hover bg-input |
 | `.feed-post` | Individual feed post | Card-bg, rounded-xl, shadow, overflow hidden |
 | `.post-header` | Post top row | Flex, space-between, padding |
-| `.post-description` | Post text | Padding, 15px font, line-height |
-| `.post-image` | Post image | Full width, max 500px height, object-cover |
+| `.post-description` | Post text | Padding, font-size, line-height |
+| `.post-image` | Post image | Full width, max height, object-cover |
 | `.post-actions` | Like/Comment/Share row | Flex, border-top, muted color |
 | `.post-btn` | Action buttons | Flex-1, centered, hover effect |
 | `.profile-cover` | Cover banner | Full width, 200px height, colored bg |
@@ -456,33 +462,53 @@ All custom component classes defined in `@layer components`:
 
 ---
 
+## Key Design Patterns
+
+### Form Input Styling (Overlay Pattern)
+```jsx
+className="w-full px-4 py-3 rounded-lg border border-(--muted) bg-(--bg-input) text-(--text) outline-none focus:ring-2 focus:ring-(--indigo) focus:border-(--indigo)"
+```
+
+### Toggle Button Pattern
+```jsx
+className={`flex-1 py-2 rounded-xl text-xs font-semibold border-2 cursor-pointer transition-all ${
+    active === opt
+        ? 'border-(--indigo) text-(--indigo) bg-(--indigo)/10'
+        : 'border-(--muted)/30 text-(--text) hover:border-(--indigo)/50'
+}`}
+```
+
+### Modal Overlay Pattern
+```jsx
+<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+    <div className="bg-(--signinbg) rounded-2xl shadow-xl p-8 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto animate-scaleIn" onClick={e => e.stopPropagation()}>
+```
+
+### Image Upload Area
+```jsx
+<div className="flex items-center justify-center h-40 rounded-xl bg-(--bg-input) border-2 border-dashed border-(--muted)">
+```
+
+---
+
 ## Git History & Contributors
 
-### Contributors (3 people, 44 commits)
+### Contributors (3 people)
 
-| Author | Commits | Role |
-| :--- | :--- | :--- |
-| **LancD** | 28 | Primary developer, merger |
-| **ashxio** | 9 | Feature developer (community, favourites) |
-| **VorngViseth** | 7 | Feature developer (sign-in, tabs, fixes) |
+| Author | Role |
+| :--- | :--- |
+| **LancD** | Primary developer, architecture, AI integration |
+| **ashxio** | Community features, cards, mock data |
+| **VorngViseth** | Auth modals, tabs, UI components |
 
 ### Development Timeline
 
 | Date | Milestone |
 | :--- | :--- |
-| Dec 10, 2024 | Initial commit |
-| Dec 11–14 | Core structure, header, footer, main content |
-| Dec 15–17 | Cards, tabs, TvNa tab, content fixes |
-| Dec 18–20 | Sign-in/sign-up, favourites, community, add-place overlay |
-| Dec 22 | Password validation, nav bar links |
-| Dec 24–25 | Bug fixes, merge PRs |
-| Jul 24, 2026 | Map page, profile page, community feed redesign |
-
-### Branching Strategy
-
-- `main` — Default branch, production-ready
-- Feature branches: `Ashxio`, `Seth`
-- Merged via GitHub Pull Requests
+| Dec 2024 | Initial vanilla HTML/CSS/JS version |
+| Jul 2024 | Map page, profile page, community feed redesign |
+| Jul 2026 | Migrated to React 19 + Vite 8 + Tailwind v4 |
+| Jul 2026 | Added AI plan generation (Gemini), language toggle (EN/KH), modal post form |
 
 ---
 
@@ -490,23 +516,21 @@ All custom component classes defined in `@layer components`:
 
 | Issue | Severity | Description |
 | :--- | :--- | :--- |
-| **Stale dist/ folder** | Medium | `copy-html` script pattern `src/*.html` doesn't match `src/pages/*.html`. Dist HTML files may be outdated. |
-| **No backend** | Low | All data is static. Sign-in/sign-up forms don't authenticate. Social login buttons are non-functional. |
-| **.env committed** | Medium | Google Maps API key is in the repo without being gitignored. Key appears unused (Leaflet uses OSM). |
+| **No backend** | Low | All data is static. Sign-in/sign-up forms don't authenticate. |
 | **No test suite** | Low | Zero testing infrastructure. |
-| **No linter/formatter** | Low | No ESLint, Prettier, or similar config. |
 | **Hardcoded data** | Low | All place data, community posts, and profiles are hardcoded arrays. |
-| **Inconsistent naming** | Low | `claude.md` vs `CLAUDE.MD` (case sensitivity). |
-| **Unused .env key** | Low | `GOOGLE_MAP_API_DEMO` is in `.env` but map page uses OpenStreetMap tiles. |
+| **API key in .env** | Medium | Gemini API key in .env file — should ensure it's gitignored. |
+| **Unused AddPlaceModal** | Low | Component exists but is not imported/used anywhere. |
 
 ---
 
 ## Future Enhancements
 
-- **Backend integration**: Connect to a REST API for dynamic data, real authentication, and persistent storage
+- **Backend integration**: REST API for dynamic data, real authentication, persistent storage
 - **User accounts**: Real sign-up/sign-in with JWT tokens, user-generated content
 - **Search improvements**: Geocoding API for map search (Nominatim/OpenStreetMap)
 - **Notifications**: Real-time updates for new community posts
 - **PWA support**: Service worker for offline access, installable app
-- **Testing**: Unit tests for JS modules, E2E tests for critical flows
+- **Testing**: Unit tests for components, E2E tests for critical flows
 - **CMS integration**: Admin panel for managing places, posts, and users
+- **Khmer script support**: Option to display actual Khmer script alongside transliteration

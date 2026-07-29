@@ -2,6 +2,7 @@ import { useState } from 'react'
 import ItineraryStepCard from '../cards/ItineraryStepCard.jsx'
 import JuyRoForm from './JuyRoForm.jsx'
 import { goNowWithStops } from '../../services/mapLinks.js'
+import { Map } from 'lucide-react'
 
 export default function ItineraryTimeline({ plan, onStopsChange }) {
     const { stops } = plan
@@ -36,11 +37,14 @@ export default function ItineraryTimeline({ plan, onStopsChange }) {
 
     if (stops.length === 0) {
         return (
-            <div className="flex flex-col items-center py-10">
-                <p className="text-(--muted) mb-4">No stops yet. Add activities to get started.</p>
+            <div className="flex flex-col items-center py-12">
+                <div className="w-16 h-16 rounded-2xl bg-(--indigo)/10 flex items-center justify-center mb-4">
+                    <Map className="text-(--indigo)" size={32} />
+                </div>
+                <p className="text-(--muted) mb-4 text-center">No stops yet. Add activities to get started.</p>
                 <button
                     onClick={() => setAddIndex(0)}
-                    className="btn bg-(--indigo) text-white py-2 px-5 rounded-full font-medium cursor-pointer"
+                    className="btn bg-(--indigo) text-white py-2.5 px-6 rounded-xl font-medium cursor-pointer"
                 >
                     + Add Place
                 </button>
@@ -59,18 +63,20 @@ export default function ItineraryTimeline({ plan, onStopsChange }) {
 
     return (
         <div className="max-w-lg mx-auto">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-8">
                 <div>
                     <h2 className="text-2xl font-bold text-(--text)">Your Plan</h2>
-                    <p className="text-sm text-(--muted)">
-                        {plan.duration}h · {plan.groupSize} people · {plan.totalCost}
-                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                        <span className="px-2.5 py-0.5 rounded-lg bg-(--indigo)/10 text-(--indigo) text-xs font-semibold">{plan.duration}h</span>
+                        <span className="px-2.5 py-0.5 rounded-lg bg-(--bg-input) text-(--muted) text-xs font-medium">{plan.groupSize} people</span>
+                        <span className="px-2.5 py-0.5 rounded-lg bg-green-500/10 text-green-600 text-xs font-semibold">{plan.totalCost}</span>
+                    </div>
                 </div>
                 <a
                     href={goNowWithStops(stops)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="btn bg-(--indigo) text-white text-sm py-2 px-4 rounded-full flex items-center gap-1"
+                    className="btn bg-(--indigo) text-white text-sm py-2 px-4 rounded-xl flex items-center gap-1.5"
                 >
                     <span className="material-symbols-outlined text-[16px]">navigation</span>
                     Go Now
@@ -93,7 +99,7 @@ export default function ItineraryTimeline({ plan, onStopsChange }) {
                                     </div>
                                 ) : (
                                     <button
-                                        className="w-8 h-8 rounded-full border-2 border-dashed border-(--indigo)/50 text-(--indigo) flex items-center justify-center hover:bg-(--indigo)/10 cursor-pointer"
+                                        className="w-8 h-8 rounded-full border-2 border-dashed border-(--indigo)/40 text-(--indigo) flex items-center justify-center hover:bg-(--indigo)/10 hover:border-(--indigo) cursor-pointer transition-all"
                                         onClick={() => setAddIndex(i + 1)}
                                     >
                                         <span className="material-symbols-outlined text-[18px]">add</span>
@@ -115,7 +121,7 @@ export default function ItineraryTimeline({ plan, onStopsChange }) {
                         </div>
                     ) : (
                         <button
-                            className="w-8 h-8 rounded-full border-2 border-dashed border-(--indigo)/50 text-(--indigo) flex items-center justify-center hover:bg-(--indigo)/10 cursor-pointer"
+                            className="w-8 h-8 rounded-full border-2 border-dashed border-(--indigo)/40 text-(--indigo) flex items-center justify-center hover:bg-(--indigo)/10 hover:border-(--indigo) cursor-pointer transition-all"
                             onClick={() => setAddIndex(stops.length)}
                         >
                             <span className="material-symbols-outlined text-[18px]">add</span>

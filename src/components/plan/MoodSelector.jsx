@@ -8,18 +8,18 @@ const moods = [
 
 export default function MoodSelector({ selected, onSelect }) {
     return (
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2">
             {moods.map(mood => (
                 <button
                     key={mood.id}
                     onClick={() => onSelect(mood.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 font-medium transition-all cursor-pointer ${
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl border-2 text-sm font-medium transition-all cursor-pointer ${
                         selected === mood.id
-                            ? 'border-(--indigo) text-(--indigo) bg-(--indigo)/10'
-                            : 'border-(--muted) text-(--text) hover:border-(--indigo)'
+                            ? 'border-(--indigo) text-(--indigo) bg-(--indigo)/10 shadow-sm'
+                            : 'border-(--muted)/30 text-(--text) hover:border-(--indigo)/50 hover:bg-(--indigo)/5'
                     }`}
                 >
-                    <span className="material-symbols-outlined text-[18px]">{mood.icon}</span>
+                    <span className="material-symbols-outlined text-[16px]">{mood.icon}</span>
                     {mood.label}
                 </button>
             ))}
