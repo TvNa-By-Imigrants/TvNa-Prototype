@@ -1,0 +1,154 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/*
+  Tovna24 design system — see Design.md
+
+  Fonts (not yet bundled — falls back to system-ui until added):
+    Latin:   "Google Sans"
+    Khmer:   "Kantumruy Pro"
+    Chinese: "Noto Sans SC"
+
+  Theme mechanism: `.dark` class (shadcn default, matches existing prototype)
+  plus `[data-theme="dark"]` as an alias. The app should set one of these on
+  <html> (e.g. an inline script respecting localStorage + prefers-color-scheme).
+*/
+
+@custom-variant dark (&:is(.dark, [data-theme="dark"]) *);
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Google Sans', 'Kantumruy Pro', 'Noto Sans SC', system-ui, sans-serif;
+
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+    /* ---- Tovna24 brand tokens (light mode) ---- */
+    --bg: #F1F2FB;
+    --surface: #F8F8FE;
+    --surface-raised: #F8F8FE;
+    --border: #D9DCF0;
+    --text: #1B1D2E;
+    --text-muted: #636880;
+    --primary: #5C6BF3;
+    --primary-strong: #4A58D8;
+    --primary-button: #4A58D8;
+    --primary-hover: #3F4BC4;
+    --primary-tint: #E6E9FD;
+    --primary-border: #C5CBF8;
+    --on-primary: #F8F8FE;
+    --rating: #F59E0B;
+    --success: #16A34A;
+    --danger: #DC2626;
+
+    /* ---- shadcn aliases (reference tokens, auto-update in dark mode) ---- */
+    --background: var(--bg);
+    --foreground: var(--text);
+    --card: var(--surface);
+    --card-foreground: var(--text);
+    --popover: var(--surface-raised);
+    --popover-foreground: var(--text);
+    --primary-foreground: var(--on-primary);
+    --secondary: var(--primary-tint);
+    --secondary-foreground: var(--primary-strong);
+    --muted: var(--primary-tint);
+    --muted-foreground: var(--text-muted);
+    --accent: var(--primary-tint);
+    --accent-foreground: var(--text);
+    --destructive: var(--danger);
+    --input: var(--border);
+    --ring: var(--primary);
+
+    /* ---- extra shadcn surfaces (not in Design.md — derived from tokens) ---- */
+    --chart-1: var(--primary);
+    --chart-2: var(--primary-strong);
+    --chart-3: var(--primary-tint);
+    --chart-4: var(--primary-border);
+    --chart-5: var(--primary-hover);
+
+    --sidebar: var(--surface);
+    --sidebar-foreground: var(--text);
+    --sidebar-primary: var(--primary-button);
+    --sidebar-primary-foreground: var(--on-primary);
+    --sidebar-accent: var(--primary-tint);
+    --sidebar-accent-foreground: var(--text);
+    --sidebar-border: var(--border);
+    --sidebar-ring: var(--primary);
+
+    --radius: 0.75rem;
+    color-scheme: light;
+}
+
+/* Dark mode (Facebook-style): only the brand tokens change; aliases follow. */
+.dark,
+:root[data-theme="dark"] {
+    --bg: #18191A;
+    --surface: #242526;
+    --surface-raised: #3A3B3C;
+    --border: #3E4042;
+    --text: #E4E6EB;
+    --text-muted: #B0B3B8;
+    --primary: #5C6BF3;
+    --primary-strong: #8C98F8;
+    --primary-button: #4A58D8;
+    --primary-hover: #A5AFFA;
+    --primary-tint: #2B2E4A;
+    --primary-border: #3A4296;
+    --on-primary: #F8F8FE;
+    --rating: #FBBF24;
+    --success: #4ADE80;
+    --danger: #F87171;
+    color-scheme: dark;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+  html {
+    @apply font-sans;
+    }
+}
