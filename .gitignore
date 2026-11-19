@@ -2,15 +2,22 @@
 logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Dependencies and build output
+node_modules/
+dist/
+dist-ssr/
+/build/
+/lib/
+*.tsbuildinfo
+
+# Tool caches and test output
+.vite/
+.tanstack/
+coverage/
+coverage-reports/
+spec-reports/
+test-reports/
 
 # Environment variables
 .env
@@ -18,12 +25,16 @@ dist-ssr
 .env.*.local
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+.vscode/
+.idea/
+docs/.obsidian/
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
+
+# Local scratch and agent tooling
+.scratch/
+.agents/
+skills-lock.json
+
+# Docker volumes
+docker-data/
