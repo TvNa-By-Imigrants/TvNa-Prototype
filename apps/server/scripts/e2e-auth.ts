@@ -108,7 +108,16 @@ async function main(): Promise<void> {
     });
     assert(signOut.status === 200, 'sign-out should return 200');
 
-    const afterSignOut = await fetch(`${base}/api/me`, { headers: { cookie } });
+    // A real browser honors the sign-out response's Set-Cookie and clears the
+    // session_token and session_data (cookie cache) cookies. Replaying the
+    // original sign-in cookie would still authenticate via the cookie cache.
+    const clearedCookie = (signOut.headers.getSetCookie?.() ?? [])
+      .map((value) => value.split(';')[0])
+      .join('; ');
+
+    const afterSignOut = await fetch(`${base}/api/me`, {
+      headers: { cookie: clearedCookie },
+    });
     assert(afterSignOut.status === 401, 'me should be unauthorized after sign-out');
 
     console.log('[e2e-auth] PASS: sign-in, session, revoke eligibility, sign-out');
