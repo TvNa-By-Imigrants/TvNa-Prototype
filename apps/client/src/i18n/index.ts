@@ -10,7 +10,7 @@ export const translations: Record<SupportedLanguage, TranslationSchema> = {
 };
 
 /**
- * Returns the dictionary for the specified language.
+ * Returns the dictionary for the specified language (admin / existing components).
  */
 export function getTranslation(
   lang: SupportedLanguage = 'en',
@@ -30,3 +30,16 @@ export function t(
 }
 
 export { en, km, type TranslationSchema };
+
+// App discovery & public experience i18n
+export { useLanguage, type LanguageContextValue } from "./context";
+export { appEn, type TranslationDictionary } from "./app-en";
+export { appKm } from "./app-km";
+export { LanguageProvider } from "./language-provider";
+export {
+  languages,
+  translate,
+  appTranslations,
+  type Language,
+  type TranslationKey,
+} from "./translations";
