@@ -23,6 +23,7 @@
     "db:migrate": "npm run db:migrate -w @repo/server",
     "db:push": "npm run db:push -w @repo/server",
     "seed:admin": "npm run seed:admin -w @repo/server",
+    "seed:places": "npm run seed:places -w @repo/server",
     "init": "node scripts/init-template.mjs",
     "compose:up": "docker compose up --build",
     "compose:down": "docker compose down -v"
