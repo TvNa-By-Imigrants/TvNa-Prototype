@@ -45,6 +45,9 @@ export const appKm: TranslationDictionary = {
     reachedEnd: "បានបង្ហាញទាំងអស់ហើយ",
     noResults: "មិនមានកន្លែងត្រូវនឹងការស្វែងរកឡើយ",
     resetFilters: "កំណត់ឡើងវិញ",
+    errorTitle: "មិនអាចផ្ទុកទិន្នន័យកន្លែងបានទេ",
+    errorMessage: "មិនអាចទាញយកទិន្នន័យបាននៅពេលនេះទេ។ សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិត ហើយព្យាយាមម្តងទៀត។",
+    retry: "ព្យាយាមម្តងទៀត",
   },
   notBuilt: {
     badge: "កំពុងរៀបចំ",

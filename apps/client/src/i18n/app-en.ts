@@ -43,6 +43,9 @@ export const appEn = {
     reachedEnd: "You've reached the end",
     noResults: "No places match your search",
     resetFilters: "Reset filters",
+    errorTitle: "Failed to load places",
+    errorMessage: "Unable to load places right now. Please check your network and try again.",
+    retry: "Try again",
   },
   notBuilt: {
     badge: "Under Construction",

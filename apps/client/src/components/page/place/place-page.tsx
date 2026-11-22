@@ -1,6 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useInfiniteQuery } from "@tanstack/react-query"
 import {
+  AlertCircleIcon,
   CheckCircle2Icon,
+  RotateCcwIcon,
   SearchIcon,
   SearchXIcon,
   XIcon,
@@ -16,17 +19,17 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Skeleton } from "@/components/ui/skeleton"
-import { placeCategories, places, type PlaceCategoryId, type PlaceItem } from "@/data"
+import { placeCategories } from "@/data"
 import { useLanguage } from "@/i18n"
+import { fetchPlaces } from "@/lib/places-api"
 import { cn } from "@/lib/utils"
 
-const INITIAL_BATCH_SIZE = 8
-const LOAD_MORE_BATCH_SIZE = 4
+const PAGE_SIZE = 8
 
 /**
- * Skeleton placeholder for PlaceCard during infinite scroll load.
+ * Skeleton placeholder for PlaceCard during initial and infinite scroll load.
  */
-function PlaceCardSkeleton() {
+export function PlaceCardSkeleton() {
   return (
     <div
       data-slot="place-card-skeleton"
@@ -53,75 +56,83 @@ export function PlacePage() {
   const { language, t } = useLanguage()
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [searchQuery, setSearchQuery] = useState("")
-  const [visibleCount, setVisibleCount] = useState(INITIAL_BATCH_SIZE)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("")
   const sentinelRef = useRef<HTMLDivElement | null>(null)
 
-  // Filter places based on selected category and search query
-  const filteredPlaces = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase()
+  // Debounce search query changes to avoid excessive network requests
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery.trim())
+    }, 300)
 
-    return places.filter((place: PlaceItem) => {
-      const matchesCategory =
-        selectedCategory === "all" || place.categoryId === (selectedCategory as PlaceCategoryId)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
 
-      const matchesSearch =
-        query === "" ||
-        place.name.toLowerCase().includes(query) ||
-        place.area.toLowerCase().includes(query) ||
-        place.category.toLowerCase().includes(query)
+  // Live data fetching from GET /api/v1/places with pagination and filters
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    refetch,
+  } = useInfiniteQuery({
+    queryKey: [
+      "places",
+      {
+        q: debouncedSearchQuery || undefined,
+        category_id: selectedCategory === "all" ? undefined : selectedCategory,
+      },
+    ],
+    queryFn: ({ pageParam = 1 }) =>
+      fetchPlaces({
+        q: debouncedSearchQuery || undefined,
+        category_id: selectedCategory === "all" ? undefined : selectedCategory,
+        page: pageParam,
+        limit: PAGE_SIZE,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
+  })
 
-      return matchesCategory && matchesSearch
-    })
-  }, [selectedCategory, searchQuery])
+  // Flatten places across pages
+  const allPlaces = useMemo(() => {
+    return data?.pages.flatMap((page) => page.items) ?? []
+  }, [data])
 
-  // Reset pagination when filters change
+  const totalCount = data?.pages[0]?.total ?? 0
+
+  // Category and search handlers
   const handleCategoryChange = (catId: string) => {
     setSelectedCategory(catId)
-    setVisibleCount(INITIAL_BATCH_SIZE)
-    setIsLoadingMore(false)
   }
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query)
-    setVisibleCount(INITIAL_BATCH_SIZE)
-    setIsLoadingMore(false)
+    if (!query.trim()) {
+      setDebouncedSearchQuery("")
+    }
   }
 
   const handleResetFilters = () => {
     setSelectedCategory("all")
     setSearchQuery("")
-    setVisibleCount(INITIAL_BATCH_SIZE)
-    setIsLoadingMore(false)
+    setDebouncedSearchQuery("")
   }
 
-  const visiblePlaces = useMemo(() => {
-    return filteredPlaces.slice(0, visibleCount)
-  }, [filteredPlaces, visibleCount])
-
-  const hasMore = visiblePlaces.length < filteredPlaces.length
-
-  const handleLoadMore = useCallback(() => {
-    if (isLoadingMore || !hasMore) return
-
-    setIsLoadingMore(true)
-    const timer = setTimeout(() => {
-      setVisibleCount((prev) => Math.min(prev + LOAD_MORE_BATCH_SIZE, filteredPlaces.length))
-      setIsLoadingMore(false)
-    }, 450)
-
-    return () => clearTimeout(timer)
-  }, [isLoadingMore, hasMore, filteredPlaces.length])
-
-  // IntersectionObserver for bottom infinite scroll sentinel
+  // IntersectionObserver for infinite scroll sentinel
   useEffect(() => {
     const sentinel = sentinelRef.current
-    if (!sentinel || !hasMore || isLoadingMore) return
+    if (!sentinel || !hasNextPage || isFetchingNextPage) return
+
+    if (typeof IntersectionObserver === "undefined") return
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
-          handleLoadMore()
+          fetchNextPage()
         }
       },
       { rootMargin: "200px", threshold: 0.1 }
@@ -129,7 +140,7 @@ export function PlacePage() {
 
     observer.observe(sentinel)
     return () => observer.disconnect()
-  }, [hasMore, isLoadingMore, handleLoadMore])
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   return (
     <div className="flex flex-col gap-6 lg:gap-8">
@@ -203,7 +214,9 @@ export function PlacePage() {
         {/* Results Count & Reset Filter */}
         <div className="flex items-center justify-between text-xs sm:text-sm text-muted-foreground">
           <span>
-            {t("placePage.showingCount").replace("{count}", String(filteredPlaces.length))}
+            {isLoading
+              ? t("placePage.showingCount").replace("{count}", "…")
+              : t("placePage.showingCount").replace("{count}", String(totalCount))}
           </span>
           {selectedCategory !== "all" || searchQuery ? (
             <Button
@@ -218,9 +231,46 @@ export function PlacePage() {
         </div>
       </div>
 
-      {/* Places Grid */}
-      {filteredPlaces.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-16 text-center">
+      {/* Network Error State */}
+      {isError && allPlaces.length === 0 ? (
+        <div
+          data-slot="places-error-state"
+          className="flex flex-col items-center justify-center rounded-2xl border border-destructive/20 bg-destructive/5 py-14 px-4 text-center"
+        >
+          <div className="flex size-14 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+            <AlertCircleIcon className="size-7" aria-hidden="true" />
+          </div>
+          <h3 className="mt-4 text-base font-semibold text-foreground">
+            {t("placePage.errorTitle")}
+          </h3>
+          <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+            {t("placePage.errorMessage")}
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            className="mt-4 gap-2"
+          >
+            <RotateCcwIcon className="size-3.5" aria-hidden="true" />
+            {t("placePage.retry")}
+          </Button>
+        </div>
+      ) : isLoading ? (
+        /* Initial Loading Skeleton Grid */
+        <section aria-label={t("placePage.title")} className="flex flex-col gap-6">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {Array.from({ length: PAGE_SIZE }).map((_, idx) => (
+              <PlaceCardSkeleton key={idx} />
+            ))}
+          </div>
+        </section>
+      ) : allPlaces.length === 0 ? (
+        /* Empty State */
+        <div
+          data-slot="places-empty-state"
+          className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-16 text-center"
+        >
           <div className="flex size-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <SearchXIcon className="size-7" aria-hidden="true" />
           </div>
@@ -240,12 +290,13 @@ export function PlacePage() {
           </Button>
         </div>
       ) : (
+        /* Places Grid with Infinite Scroll */
         <section aria-label={t("placePage.title")} className="flex flex-col gap-6">
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            {visiblePlaces.map((place) => (
+            {allPlaces.map((place) => (
               <PlaceCard key={place.id} place={place} />
             ))}
-            {isLoadingMore && (
+            {isFetchingNextPage && (
               <>
                 <PlaceCardSkeleton />
                 <PlaceCardSkeleton />
@@ -260,13 +311,16 @@ export function PlacePage() {
 
           {/* Bottom Pagination Status */}
           <div className="flex items-center justify-center py-4">
-            {isLoadingMore ? (
+            {isFetchingNextPage ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span className="size-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                 <span>{t("placePage.loadingMore")}</span>
               </div>
-            ) : !hasMore && filteredPlaces.length > 0 ? (
-              <Badge variant="outline" className="gap-1.5 px-3 py-1 text-xs sm:text-sm text-muted-foreground border-border/80">
+            ) : !hasNextPage && allPlaces.length > 0 ? (
+              <Badge
+                variant="outline"
+                className="gap-1.5 px-3 py-1 text-xs sm:text-sm text-muted-foreground border-border/80"
+              >
                 <CheckCircle2Icon className="size-4 text-success" aria-hidden="true" />
                 <span>{t("placePage.reachedEnd")}</span>
               </Badge>

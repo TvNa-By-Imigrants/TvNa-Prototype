@@ -1,9 +1,11 @@
 import { useNavigate } from "@tanstack/react-router"
+import { useQuery } from "@tanstack/react-query"
 import { FlameIcon, SparklesIcon } from "lucide-react"
 
 import { FeedCard, PlaceCard } from "@/components/cards"
-import { feedPosts, partneredPlaces } from "@/data"
+import { feedPosts } from "@/data"
 import { useLanguage } from "@/i18n"
+import { fetchPlaces } from "@/lib/places-api"
 
 import { HeroBanner } from "./hero-banner"
 import { SectionHeader } from "./section-header"
@@ -18,11 +20,16 @@ export function HomeView() {
   const { t } = useLanguage()
   const navigate = useNavigate()
 
+  const { data: placesData } = useQuery({
+    queryKey: ["places", { is_partnered: true, limit: 4 }],
+    queryFn: () => fetchPlaces({ is_partnered: true, limit: 4 }),
+  })
+
   // Only show the first 4 feed posts on Home
   const homeFeedPosts = feedPosts.slice(0, 4)
 
-  // Only show partnered places on Home (max 4)
-  const homePartneredPlaces = partneredPlaces.slice(0, 4)
+  // Live partnered places fetched from the backend API
+  const homePartneredPlaces = placesData?.items ?? []
 
   return (
     <div className="flex flex-col gap-8 lg:gap-10">
