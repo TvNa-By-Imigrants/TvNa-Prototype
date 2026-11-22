@@ -10,12 +10,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import type { PlaceItem } from "@/data"
+import type { Place } from "@repo/contracts"
 import { useLanguage } from "@/i18n"
 import { cn } from "@/lib/utils"
 
 export type PlaceCardProps = {
-  place: PlaceItem
+  place: Place
   className?: string
 }
 

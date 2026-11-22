@@ -29,35 +29,35 @@ const slides: SlideItem[] = [
     isBrandSlide: true,
     headlineKey: "discovery.heroHeadline",
     taglineKey: "discovery.heroTagline",
-    image: "/assets/visitPhnomPenh.webp",
+    image: "https://res.cloudinary.com/daqze8ogx/image/upload/v1795371425/uucdm3f2rcmwonp0p4oq.webp",
   },
   {
     id: "tsutaya-cafe",
     headlineText: "Tatsuya Bookstore Cafe",
     taglineText: "ហាងសៀវភៅ និងកាហ្វេ សម្រាប់អាន និងធ្វើការយ៉ាងស្ងប់ស្ងាត់",
     meta: "BKK1 · Bookstore Cafe",
-    image: "/assets/tsutayabookstore.webp",
+    image: "https://res.cloudinary.com/daqze8ogx/image/upload/v1795371423/vntoncedkjvhc511pjtg.webp",
   },
   {
     id: "kaixin-hotpot",
     headlineText: "Kaixin Hotpot",
     taglineText: "ស៊ុបក្ដៅរសជាតិដើមដ៏ឈ្ងុយឆ្ងាញ់នៅ Fun Mall",
     meta: "Toul Kork · Restaurant",
-    image: "/assets/kaixin.webp",
+    image: "https://res.cloudinary.com/daqze8ogx/image/upload/v1795371412/v1s5lmz8pbzd1dl7ll3m.webp",
   },
   {
     id: "coconut-park",
     headlineText: "Coconut Park Cafe",
     taglineText: "សួនកម្សាន្តធម្មជាតិ និងកាហ្វេមាត់ទឹកដ៏ត្រជាក់",
     meta: "Chamkar Mon · Park & Cafe",
-    image: "/assets/coconutpark.webp",
+    image: "https://res.cloudinary.com/daqze8ogx/image/upload/v1795371403/yshym1x7gt5n7zvuan7i.webp",
   },
   {
     id: "funnifun-arcade",
     headlineText: "Funnifun Arcade",
     taglineText: "កន្លែងកម្សាន្តចាប់តុក្កតា និងហ្គេមប្លែកៗ",
     meta: "BKK1 · Arcade & Games",
-    image: "/assets/funnifun.webp",
+    image: "https://res.cloudinary.com/daqze8ogx/image/upload/v1795371410/urxupkkd3dtlbixytj3u.webp",
   },
 ]
 
@@ -138,7 +138,7 @@ export function HeroBanner({ className }: HeroBannerProps) {
                 {slide.isBrandSlide ? (
                   <div className="flex items-center gap-2">
                     <img
-                      src="/assets/TvNa.png"
+                      src="https://res.cloudinary.com/daqze8ogx/image/upload/v1795371398/tdowgtvwjxagvyomrmhu.png"
                       alt="TvNa"
                       className="size-8 rounded-md object-contain bg-primary p-0.5 shadow-xs"
                     />
