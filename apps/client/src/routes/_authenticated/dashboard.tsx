@@ -5,11 +5,11 @@ import { LanguageToggle } from '@/components/molecules';
 import { usePermissions } from '@/lib/permissions';
 import type { SupportedLanguage } from '@/i18n';
 
-export const Route = createFileRoute('/_authenticated/')({
-  component: Index,
+export const Route = createFileRoute('/_authenticated/dashboard')({
+  component: Dashboard,
 });
 
-function Index() {
+function Dashboard() {
   const [activeNav, setActiveNav] = useState('dashboard');
   const [language, setLanguage] = useState<SupportedLanguage>('en');
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -59,4 +59,4 @@ function Index() {
   );
 }
 
-export default Index;
+export default Dashboard;

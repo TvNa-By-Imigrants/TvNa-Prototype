@@ -1,0 +1,71 @@
+export const appEn = {
+  nav: {
+    home: "Home",
+    place: "Place",
+    plan: "Plan",
+    map: "Map",
+    feed: "Feed",
+  },
+  header: {
+    homeAria: "TvNa home",
+    login: "Login",
+    register: "Register",
+    search: "Search places, food, hotels…",
+    searchAria: "Search",
+    clearSearch: "Clear search",
+    language: "Language",
+    changeLanguage: "Change language",
+    toggleTheme: "Toggle theme",
+  },
+  card: {
+    open24Hours: "24 hours",
+    goNow: "Go Now",
+    addToPlan: "Add to Plan",
+    likes: "Likes",
+    comments: "Comments",
+    views: "Views",
+    verified: "Verified",
+    partnered: "Partner",
+  },
+  category: {
+    all: "All",
+    visit: "Visit",
+    stay: "Stay",
+    eat: "Eat",
+    cafe: "Cafe",
+  },
+  placePage: {
+    title: "Discover Places",
+    subtitle: "Explore popular spots, restaurants, cafes, and stays across Cambodia",
+    searchPlaceholder: "Search by name, area or district…",
+    showingCount: "Showing {count} places",
+    loadingMore: "Loading more places…",
+    reachedEnd: "You've reached the end",
+    noResults: "No places match your search",
+    resetFilters: "Reset filters",
+  },
+  notBuilt: {
+    badge: "Under Construction",
+    title: "Haven't been built yet",
+    description: "This page hasn't been built yet. We are actively working on it! You can explore our places or return to the home page.",
+    backHome: "Back to Home",
+    explorePlaces: "Explore Places",
+  },
+  discovery: {
+    heroHeadline: "Where to go?",
+    heroTagline: "Discover places to visit, eat and stay in Phnom Penh",
+    partnerPromotion: "Partner Promotion",
+    exploreNow: "Explore Now",
+    feedTitle: "Feed",
+    feedSubtitle: "Fresh picks from the community",
+    placesTitle: "Places to Hang Out",
+    placesSubtitle: "Featured promotions from our official partners",
+    viewAll: "View All",
+  },
+} as const
+
+type Widen<T> = {
+  [K in keyof T]: T[K] extends Record<string, unknown> ? Widen<T[K]> : string
+}
+
+export type TranslationDictionary = Widen<typeof appEn>

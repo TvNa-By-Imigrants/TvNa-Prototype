@@ -9,13 +9,43 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as FeedRouteImport } from './routes/feed'
+import { Route as MapRouteImport } from './routes/map'
+import { Route as PlaceRouteImport } from './routes/place'
+import { Route as PlanRouteImport } from './routes/plan'
 import { Route as SignInRouteImport } from './routes/sign-in'
-import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedPokemonRouteImport } from './routes/_authenticated/pokemon'
 
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedRoute = FeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MapRoute = MapRouteImport.update({
+  id: '/map',
+  path: '/map',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaceRoute = PlaceRouteImport.update({
+  id: '/place',
+  path: '/place',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanRoute = PlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignInRoute = SignInRouteImport.update({
@@ -23,9 +53,9 @@ const SignInRoute = SignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPokemonRoute = AuthenticatedPokemonRouteImport.update({
@@ -35,47 +65,123 @@ const AuthenticatedPokemonRoute = AuthenticatedPokemonRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AuthenticatedIndexRoute
+  '/': typeof IndexRoute
+  '/feed': typeof FeedRoute
+  '/map': typeof MapRoute
+  '/place': typeof PlaceRoute
+  '/plan': typeof PlanRoute
   '/sign-in': typeof SignInRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/pokemon': typeof AuthenticatedPokemonRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof IndexRoute
+  '/feed': typeof FeedRoute
+  '/map': typeof MapRoute
+  '/place': typeof PlaceRoute
+  '/plan': typeof PlanRoute
   '/sign-in': typeof SignInRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/pokemon': typeof AuthenticatedPokemonRoute
-  '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/feed': typeof FeedRoute
+  '/map': typeof MapRoute
+  '/place': typeof PlaceRoute
+  '/plan': typeof PlanRoute
   '/sign-in': typeof SignInRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/pokemon': typeof AuthenticatedPokemonRoute
-  '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sign-in' | '/pokemon'
+  fullPaths:
+    | '/'
+    | '/feed'
+    | '/map'
+    | '/place'
+    | '/plan'
+    | '/sign-in'
+    | '/dashboard'
+    | '/pokemon'
   fileRoutesByTo: FileRoutesByTo
-  to: '/sign-in' | '/pokemon' | '/'
+  to:
+    | '/'
+    | '/feed'
+    | '/map'
+    | '/place'
+    | '/plan'
+    | '/sign-in'
+    | '/dashboard'
+    | '/pokemon'
   id:
     | '__root__'
+    | '/'
     | '/_authenticated'
+    | '/feed'
+    | '/map'
+    | '/place'
+    | '/plan'
     | '/sign-in'
+    | '/_authenticated/dashboard'
     | '/_authenticated/pokemon'
-    | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  FeedRoute: typeof FeedRoute
+  MapRoute: typeof MapRoute
+  PlaceRoute: typeof PlaceRoute
+  PlanRoute: typeof PlanRoute
   SignInRoute: typeof SignInRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feed': {
+      id: '/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof FeedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/map': {
+      id: '/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof MapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/place': {
+      id: '/place'
+      path: '/place'
+      fullPath: '/place'
+      preLoaderRoute: typeof PlaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plan': {
+      id: '/plan'
+      path: '/plan'
+      fullPath: '/plan'
+      preLoaderRoute: typeof PlanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sign-in': {
@@ -85,11 +191,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/': {
-      id: '/_authenticated/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/pokemon': {
@@ -103,20 +209,25 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedPokemonRoute: typeof AuthenticatedPokemonRoute
-  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedPokemonRoute: AuthenticatedPokemonRoute,
-  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  FeedRoute: FeedRoute,
+  MapRoute: MapRoute,
+  PlaceRoute: PlaceRoute,
+  PlanRoute: PlanRoute,
   SignInRoute: SignInRoute,
 }
 export const routeTree = rootRouteImport

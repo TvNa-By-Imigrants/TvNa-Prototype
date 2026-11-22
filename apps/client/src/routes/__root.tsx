@@ -1,23 +1,31 @@
-import { createRootRoute, Link, Outlet } from '@tanstack/react-router'
+import { createRootRoute, Outlet, ScrollRestoration, useRouterState } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { Toaster } from 'sonner'
+import { LanguageProvider } from '@/i18n'
 import { PermissionsProvider } from '@/lib/permissions'
+import { AppShell } from '@/components/shell'
 
-const RootLayout = () => (
-  <PermissionsProvider>
-    <div className="p-2 flex gap-2">
-      <Link to="/" className="[&.active]:font-bold">
-        Home
-      </Link>
-      <Link to="/sign-in" className="[&.active]:font-bold">
-        Sign In
-      </Link>
-    </div>
-    <hr />
-    <Outlet />
-    <Toaster richColors position="top-right" />
-    <TanStackRouterDevtools />
-  </PermissionsProvider>
-)
+function RootLayout() {
+  const isSignIn = useRouterState({
+    select: (s) => s.location.pathname === '/sign-in',
+  })
+
+  return (
+    <LanguageProvider>
+      <PermissionsProvider>
+        <ScrollRestoration />
+        {isSignIn ? (
+          <Outlet />
+        ) : (
+          <AppShell>
+            <Outlet />
+          </AppShell>
+        )}
+        <Toaster richColors position="top-right" />
+        <TanStackRouterDevtools />
+      </PermissionsProvider>
+    </LanguageProvider>
+  )
+}
 
 export const Route = createRootRoute({ component: RootLayout })
