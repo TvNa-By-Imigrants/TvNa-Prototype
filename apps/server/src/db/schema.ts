@@ -3,6 +3,8 @@ import {
   text,
   timestamp,
   boolean,
+  integer,
+  real,
   index,
 } from 'drizzle-orm/pg-core';
 
@@ -73,9 +75,43 @@ export const verification = pgTable('verification', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+export const place = pgTable(
+  'place',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    nameKm: text('name_km'),
+    area: text('area').notNull(),
+    province: text('province').default('Phnom Penh').notNull(),
+    category: text('category').notNull(),
+    categoryId: text('category_id').notNull(),
+    image: text('image').notNull(),
+    rating: real('rating'),
+    reviewsCount: integer('reviews_count'),
+    priceLevel: text('price_level'),
+    hours: text('hours'),
+    is24Hours: boolean('is_24_hours').default(false).notNull(),
+    isPartnered: boolean('is_partnered').default(false).notNull(),
+    address: text('address'),
+    description: text('description'),
+    lat: real('lat'),
+    lng: real('lng'),
+    tags: text('tags').array(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (t) => [
+    index('place_name_idx').on(t.name),
+    index('place_category_id_idx').on(t.categoryId),
+    index('place_price_level_idx').on(t.priceLevel),
+    index('place_is_partnered_idx').on(t.isPartnered),
+  ],
+);
+
 export const schema = {
   user,
   session,
   account,
   verification,
+  place,
 };
