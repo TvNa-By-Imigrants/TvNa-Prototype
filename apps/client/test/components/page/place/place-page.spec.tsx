@@ -6,6 +6,10 @@ import { PlacePage } from '@/components/page/place';
 import { LanguageProvider } from '@/i18n';
 import { fetchPlaces } from '@/lib/places-api';
 
+vi.mock('@tanstack/react-router', () => ({
+  useNavigate: () => vi.fn(),
+}));
+
 vi.mock('@/lib/places-api', () => ({
   fetchPlaces: vi.fn(),
   fetchPlaceById: vi.fn(),
