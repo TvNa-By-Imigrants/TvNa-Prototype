@@ -1,3 +1,4 @@
+import { useNavigate } from "@tanstack/react-router"
 import { CalendarPlusIcon, NavigationIcon, StarIcon } from "lucide-react"
 
 import { AspectRatio } from "@/components/ui/aspect-ratio"
@@ -17,6 +18,9 @@ import { cn } from "@/lib/utils"
 export type PlaceCardProps = {
   place: Place
   className?: string
+  onClick?: (place: Place) => void
+  onViewOnMap?: (place: Place) => void
+  onAddToPlan?: (place: Place) => void
 }
 
 /**
@@ -24,13 +28,52 @@ export type PlaceCardProps = {
  * Card (size "sm") + AspectRatio (16:9) + Badge + Button.
  * Complies with Design.md tokens and layout rules.
  */
-export function PlaceCard({ place, className }: PlaceCardProps) {
+export function PlaceCard({
+  place,
+  className,
+  onClick,
+  onViewOnMap,
+  onAddToPlan,
+}: PlaceCardProps) {
   const { language, t } = useLanguage()
+  const navigate = useNavigate()
   const show24Hours =
     place.is24Hours === true || place.hours?.toLowerCase() === "24 hours"
 
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick(place)
+    }
+  }
+
+  const handleGoNow = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (onViewOnMap) {
+      onViewOnMap(place)
+    } else {
+      navigate({ to: "/map" })
+    }
+  }
+
+  const handleAddToPlan = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (onAddToPlan) {
+      onAddToPlan(place)
+    } else {
+      navigate({ to: "/plan" })
+    }
+  }
+
   return (
-    <Card size="sm" className={cn("group/card h-full pt-0", className)}>
+    <Card
+      size="sm"
+      onClick={handleCardClick}
+      className={cn(
+        "group/card h-full pt-0 transition-shadow",
+        onClick && "cursor-pointer hover:shadow-md hover:border-primary/40",
+        className
+      )}
+    >
       <AspectRatio ratio={16 / 9} className="relative overflow-hidden rounded-t-xl bg-muted">
         <img
           src={place.image}
@@ -90,6 +133,7 @@ export function PlaceCard({ place, className }: PlaceCardProps) {
           variant="outline"
           size="sm"
           className="flex-1"
+          onClick={handleGoNow}
           aria-label={t("card.goNow")}
           title={t("card.goNow")}
         >
@@ -99,6 +143,7 @@ export function PlaceCard({ place, className }: PlaceCardProps) {
         <Button
           size="sm"
           className="flex-1"
+          onClick={handleAddToPlan}
           aria-label={t("card.addToPlan")}
           title={t("card.addToPlan")}
         >

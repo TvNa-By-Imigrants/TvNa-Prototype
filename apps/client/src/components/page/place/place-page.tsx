@@ -23,6 +23,8 @@ import { placeCategories } from "@/data"
 import { useLanguage } from "@/i18n"
 import { fetchPlaces } from "@/lib/places-api"
 import { cn } from "@/lib/utils"
+import type { Place } from "@repo/contracts"
+import { PlaceDetailPage } from "@/components/page/place-detail"
 
 const PAGE_SIZE = 8
 
@@ -57,6 +59,7 @@ export function PlacePage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("")
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
   const sentinelRef = useRef<HTMLDivElement | null>(null)
 
   // Debounce search query changes to avoid excessive network requests
@@ -141,6 +144,16 @@ export function PlacePage() {
     observer.observe(sentinel)
     return () => observer.disconnect()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  // If a place is selected, render the full DE-designed PlaceDetailPage view
+  if (selectedPlace) {
+    return (
+      <PlaceDetailPage
+        place={selectedPlace}
+        onBack={() => setSelectedPlace(null)}
+      />
+    )
+  }
 
   return (
     <div className="flex flex-col gap-6 lg:gap-8">
@@ -294,7 +307,11 @@ export function PlacePage() {
         <section aria-label={t("placePage.title")} className="flex flex-col gap-6">
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {allPlaces.map((place) => (
-              <PlaceCard key={place.id} place={place} />
+              <PlaceCard
+                key={place.id}
+                place={place}
+                onClick={(p) => setSelectedPlace(p)}
+              />
             ))}
             {isFetchingNextPage && (
               <>

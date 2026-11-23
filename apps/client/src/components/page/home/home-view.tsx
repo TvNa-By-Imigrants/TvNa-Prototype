@@ -1,11 +1,14 @@
+import { useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query"
 import { FlameIcon, SparklesIcon } from "lucide-react"
 
 import { FeedCard, PlaceCard } from "@/components/cards"
+import { PlaceDetailPage } from "@/components/page/place-detail"
 import { feedPosts } from "@/data"
 import { useLanguage } from "@/i18n"
 import { fetchPlaces } from "@/lib/places-api"
+import type { Place } from "@repo/contracts"
 
 import { HeroBanner } from "./hero-banner"
 import { SectionHeader } from "./section-header"
@@ -19,6 +22,7 @@ import { SectionHeader } from "./section-header"
 export function HomeView() {
   const { t } = useLanguage()
   const navigate = useNavigate()
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
 
   const { data: placesData } = useQuery({
     queryKey: ["places", { is_partnered: true, limit: 4 }],
@@ -30,6 +34,15 @@ export function HomeView() {
 
   // Live partnered places fetched from the backend API
   const homePartneredPlaces = placesData?.items ?? []
+
+  if (selectedPlace) {
+    return (
+      <PlaceDetailPage
+        place={selectedPlace}
+        onBack={() => setSelectedPlace(null)}
+      />
+    )
+  }
 
   return (
     <div className="flex flex-col gap-8 lg:gap-10">
@@ -63,7 +76,11 @@ export function HomeView() {
         />
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {homePartneredPlaces.map((place) => (
-            <PlaceCard key={place.id} place={place} />
+            <PlaceCard
+              key={place.id}
+              place={place}
+              onClick={(p) => setSelectedPlace(p)}
+            />
           ))}
         </div>
       </section>
