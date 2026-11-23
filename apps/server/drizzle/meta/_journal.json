@@ -15,6 +15,13 @@
       "when": 1795362832217,
       "tag": "0001_young_shard",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795428006423,
+      "tag": "0002_hesitant_corsair",
+      "breakpoints": true
     }
   ]
 }

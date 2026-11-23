@@ -68,6 +68,7 @@ describe('domain places', () => {
         category: 'Cafe',
         category_id: 'cafe',
         image: '/assets/tsutaya.webp',
+        photos: ['/assets/tsutaya.webp', '/assets/tsutaya-interior.webp'],
         price_level: '$$',
         rating: 4.8,
         reviews_count: 100,
@@ -82,6 +83,30 @@ describe('domain places', () => {
         expect(result.value.priceLevel).toBe('$$');
         expect(result.value.isPartnered).toBe(true);
         expect(result.value.is24Hours).toBe(false);
+        expect(result.value.photos).toEqual([
+          '/assets/tsutaya.webp',
+          '/assets/tsutaya-interior.webp',
+        ]);
+      }
+    });
+
+    it.each([
+      ['missing', undefined],
+      ['empty', []],
+    ])('falls back to the main image when photos are %s', (_label, photos) => {
+      const result = mapPlaceRow({
+        id: 'cafe',
+        name: 'Cafe',
+        area: 'BKK1',
+        category: 'Cafe',
+        categoryId: 'cafe',
+        image: '/assets/cafe.webp',
+        photos,
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.photos).toEqual(['/assets/cafe.webp']);
       }
     });
   });

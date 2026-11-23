@@ -15,6 +15,7 @@ export const placeSchema = z.object({
   category: z.string().min(1),
   categoryId: z.string().min(1),
   image: z.string(),
+  photos: z.array(z.string()).default([]),
   rating: z.number().nullable().optional(),
   reviewsCount: z.number().int().nullable().optional(),
   priceLevel: priceLevelSchema.nullable().optional(),

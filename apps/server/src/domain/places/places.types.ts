@@ -11,6 +11,7 @@ export type PlaceRow = {
   category_id?: string | null;
   categoryId?: string | null;
   image: string;
+  photos?: string[] | null;
   rating?: number | null;
   reviews_count?: number | null;
   reviewsCount?: number | null;

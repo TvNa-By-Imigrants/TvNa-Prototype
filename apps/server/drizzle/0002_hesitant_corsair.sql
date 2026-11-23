@@ -1,0 +1,1 @@
+ALTER TABLE "place" ADD COLUMN "photos" text[] DEFAULT '{}' NOT NULL;

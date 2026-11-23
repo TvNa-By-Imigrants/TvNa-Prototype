@@ -58,6 +58,7 @@ export function mapPlaceRow(row: PlaceRow): Result<Place, DomainError> {
     category: row.category,
     categoryId: row.categoryId ?? row.category_id ?? '',
     image: row.image,
+    photos: Array.isArray(row.photos) && row.photos.length > 0 ? row.photos : [row.image],
     rating: row.rating !== undefined && row.rating !== null ? Number(row.rating) : null,
     reviewsCount:
       row.reviewsCount !== undefined && row.reviewsCount !== null

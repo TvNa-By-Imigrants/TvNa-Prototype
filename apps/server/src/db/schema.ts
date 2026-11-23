@@ -86,6 +86,7 @@ export const place = pgTable(
     category: text('category').notNull(),
     categoryId: text('category_id').notNull(),
     image: text('image').notNull(),
+    photos: text('photos').array().default([]).notNull(),
     rating: real('rating'),
     reviewsCount: integer('reviews_count'),
     priceLevel: text('price_level'),
