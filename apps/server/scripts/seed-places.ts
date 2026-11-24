@@ -2,6 +2,21 @@ import { eq } from 'drizzle-orm';
 import { db } from '../src/database.ts';
 import { place } from '../src/db/schema.ts';
 
+// shortcut: transformed crops of the seed image stand in for real galleries until actual photos are uploaded
+function photoGallery(image: string): string[] {
+  const marker = '/image/upload/';
+  const index = image.indexOf(marker);
+  if (index === -1) return [image];
+
+  const base = image.slice(0, index + marker.length);
+  const asset = image.slice(index + marker.length);
+  return [
+    image,
+    `${base}c_fill,w_1200,h_800/${asset}`,
+    `${base}c_fill,w_800,h_1000/${asset}`,
+  ];
+}
+
 const initialPlaces = [
   {
     id: 'tsutaya-bkk1',
@@ -361,6 +376,7 @@ async function main(): Promise<void> {
         category: item.category,
         categoryId: item.categoryId,
         image: item.image,
+        photos: photoGallery(item.image),
         rating: item.rating,
         reviewsCount: item.reviewsCount,
         priceLevel: item.priceLevel,
@@ -385,6 +401,7 @@ async function main(): Promise<void> {
           category: item.category,
           categoryId: item.categoryId,
           image: item.image,
+          photos: photoGallery(item.image),
           rating: item.rating,
           reviewsCount: item.reviewsCount,
           priceLevel: item.priceLevel,
