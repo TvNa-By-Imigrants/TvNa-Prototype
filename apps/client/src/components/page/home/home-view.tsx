@@ -7,6 +7,7 @@ import { FeedCard, PlaceCard } from "@/components/cards"
 import { PlaceDetailPage } from "@/components/page/place-detail"
 import { feedPosts } from "@/data"
 import { useLanguage } from "@/i18n"
+import { usePlan } from "@/lib/plan-context"
 import { fetchPlaces } from "@/lib/places-api"
 import type { Place } from "@repo/contracts"
 
@@ -22,7 +23,12 @@ import { SectionHeader } from "./section-header"
 export function HomeView() {
   const { t } = useLanguage()
   const navigate = useNavigate()
+  const { addStop } = usePlan()
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
+
+  const viewOnMap = (place: Place) => {
+    navigate({ to: "/map", search: { place: place.id } })
+  }
 
   const { data: placesData } = useQuery({
     queryKey: ["places", { is_partnered: true, limit: 4 }],
@@ -40,6 +46,8 @@ export function HomeView() {
       <PlaceDetailPage
         place={selectedPlace}
         photos={selectedPlace.photos}
+        onViewOnMap={viewOnMap}
+        onAddToPlan={addStop}
         onBack={() => setSelectedPlace(null)}
       />
     )
@@ -81,6 +89,8 @@ export function HomeView() {
               key={place.id}
               place={place}
               onClick={(p) => setSelectedPlace(p)}
+              onViewOnMap={viewOnMap}
+              onAddToPlan={addStop}
             />
           ))}
         </div>

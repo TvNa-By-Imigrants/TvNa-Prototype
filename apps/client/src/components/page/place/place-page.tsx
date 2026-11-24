@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useNavigate } from "@tanstack/react-router"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import {
   AlertCircleIcon,
@@ -21,6 +22,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { placeCategories } from "@/data"
 import { useLanguage } from "@/i18n"
+import { usePlan } from "@/lib/plan-context"
 import { fetchPlaces } from "@/lib/places-api"
 import { cn } from "@/lib/utils"
 import type { Place } from "@repo/contracts"
@@ -56,11 +58,17 @@ export function PlaceCardSkeleton() {
 
 export function PlacePage() {
   const { language, t } = useLanguage()
+  const navigate = useNavigate()
+  const { addStop } = usePlan()
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("")
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
   const sentinelRef = useRef<HTMLDivElement | null>(null)
+
+  const viewOnMap = (place: Place) => {
+    navigate({ to: "/map", search: { place: place.id } })
+  }
 
   // Debounce search query changes to avoid excessive network requests
   useEffect(() => {
@@ -151,6 +159,8 @@ export function PlacePage() {
       <PlaceDetailPage
         place={selectedPlace}
         photos={selectedPlace.photos}
+        onViewOnMap={viewOnMap}
+        onAddToPlan={addStop}
         onBack={() => setSelectedPlace(null)}
       />
     )
@@ -312,6 +322,8 @@ export function PlacePage() {
                 key={place.id}
                 place={place}
                 onClick={(p) => setSelectedPlace(p)}
+                onViewOnMap={viewOnMap}
+                onAddToPlan={addStop}
               />
             ))}
             {isFetchingNextPage && (

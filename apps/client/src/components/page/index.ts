@@ -1,4 +1,6 @@
 export * from "./home"
 export * from "./place"
 export * from "./place-detail"
+export * from "./map"
+export * from "./plan"
 export * from "./not-built"

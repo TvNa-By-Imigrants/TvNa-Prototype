@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { NotBuiltPage } from "@/components/page"
+import { PlanPage } from "@/components/page"
 
 export const Route = createFileRoute("/plan")({
-  component: () => <NotBuiltPage pageHref="/plan" />,
+  component: PlanPage,
 })

@@ -1,6 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { NotBuiltPage } from "@/components/page"
+import { MapPage } from "@/components/page"
 
 export const Route = createFileRoute("/map")({
-  component: () => <NotBuiltPage pageHref="/map" />,
+  validateSearch: (search: Record<string, unknown>) => ({
+    place: typeof search.place === "string" ? search.place : undefined,
+  }),
+  component: MapRoute,
 })
+
+function MapRoute() {
+  const { place } = Route.useSearch()
+  return <MapPage placeId={place} />
+}

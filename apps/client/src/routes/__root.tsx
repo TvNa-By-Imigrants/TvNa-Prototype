@@ -3,6 +3,7 @@ import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { Toaster } from 'sonner'
 import { LanguageProvider } from '@/i18n'
 import { PermissionsProvider } from '@/lib/permissions'
+import { PlanProvider } from '@/lib/plan-context'
 import { AppShell } from '@/components/shell'
 
 function RootLayout() {
@@ -13,16 +14,18 @@ function RootLayout() {
   return (
     <LanguageProvider>
       <PermissionsProvider>
-        <ScrollRestoration />
-        {isSignIn ? (
-          <Outlet />
-        ) : (
-          <AppShell>
+        <PlanProvider>
+          <ScrollRestoration />
+          {isSignIn ? (
             <Outlet />
-          </AppShell>
-        )}
-        <Toaster richColors position="top-right" />
-        <TanStackRouterDevtools />
+          ) : (
+            <AppShell>
+              <Outlet />
+            </AppShell>
+          )}
+          <Toaster richColors position="top-right" />
+          <TanStackRouterDevtools />
+        </PlanProvider>
       </PermissionsProvider>
     </LanguageProvider>
   )

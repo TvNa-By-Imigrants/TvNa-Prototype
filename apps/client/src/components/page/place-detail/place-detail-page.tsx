@@ -87,7 +87,7 @@ export function PlaceDetailPage({
     if (onViewOnMap) {
       onViewOnMap(place)
     } else {
-      navigate({ to: "/map" })
+      navigate({ to: "/map", search: { place: place.id } })
     }
   }
 
