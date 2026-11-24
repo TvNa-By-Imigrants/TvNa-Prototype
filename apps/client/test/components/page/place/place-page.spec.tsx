@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PlacePage } from '@/components/page/place';
 import { LanguageProvider } from '@/i18n';
+import { PlanProvider } from '@/lib/plan-context';
 import { fetchPlaces } from '@/lib/places-api';
 
 vi.mock('@tanstack/react-router', () => ({
@@ -64,9 +65,11 @@ function renderPlacePage() {
 
   return render(
     <LanguageProvider>
-      <QueryClientProvider client={queryClient}>
-        <PlacePage />
-      </QueryClientProvider>
+      <PlanProvider>
+        <QueryClientProvider client={queryClient}>
+          <PlacePage />
+        </QueryClientProvider>
+      </PlanProvider>
     </LanguageProvider>,
   );
 }
@@ -75,6 +78,7 @@ describe('PlacePage Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.setItem('tvna-language', 'en');
+    localStorage.removeItem('tvna.plan.stops');
   });
 
   it('renders places fetched from the backend API', async () => {
