@@ -60,19 +60,19 @@ describe('domain places', () => {
   });
 
   describe('mapPlaceRow', () => {
-    it('maps database camelCase and snake_case rows to wire Place', () => {
+    it('maps database rows to wire Place', () => {
       const result = mapPlaceRow({
         id: 'tsutaya',
         name: 'Tatsuya Bookstore Cafe',
         area: 'BKK1',
         category: 'Cafe',
-        category_id: 'cafe',
+        categoryId: 'cafe',
         image: '/assets/tsutaya.webp',
         photos: ['/assets/tsutaya.webp', '/assets/tsutaya-interior.webp'],
-        price_level: '$$',
+        priceLevel: '$$',
         rating: 4.8,
-        reviews_count: 100,
-        is_partnered: true,
+        reviewsCount: 100,
+        isPartnered: true,
         tags: ['coffee'],
       });
 
@@ -90,24 +90,5 @@ describe('domain places', () => {
       }
     });
 
-    it.each([
-      ['missing', undefined],
-      ['empty', []],
-    ])('falls back to the main image when photos are %s', (_label, photos) => {
-      const result = mapPlaceRow({
-        id: 'cafe',
-        name: 'Cafe',
-        area: 'BKK1',
-        category: 'Cafe',
-        categoryId: 'cafe',
-        image: '/assets/cafe.webp',
-        photos,
-      });
-
-      expect(result.ok).toBe(true);
-      if (result.ok) {
-        expect(result.value.photos).toEqual(['/assets/cafe.webp']);
-      }
-    });
   });
 });

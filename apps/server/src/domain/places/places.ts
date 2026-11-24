@@ -52,31 +52,29 @@ export function mapPlaceRow(row: PlaceRow): Result<Place, DomainError> {
   const candidate = {
     id: row.id,
     name: row.name,
-    nameKm: row.nameKm ?? row.name_km ?? null,
+    nameKm: row.nameKm ?? null,
     area: row.area,
     province: row.province ?? 'Phnom Penh',
     category: row.category,
-    categoryId: row.categoryId ?? row.category_id ?? '',
+    categoryId: row.categoryId ?? '',
     image: row.image,
-    photos: Array.isArray(row.photos) && row.photos.length > 0 ? row.photos : [row.image],
+    photos: row.photos,
     rating: row.rating !== undefined && row.rating !== null ? Number(row.rating) : null,
     reviewsCount:
       row.reviewsCount !== undefined && row.reviewsCount !== null
         ? Number(row.reviewsCount)
-        : row.reviews_count !== undefined && row.reviews_count !== null
-          ? Number(row.reviews_count)
-          : null,
-    priceLevel: (row.priceLevel ?? row.price_level ?? null) as PriceLevel | null,
+        : null,
+    priceLevel: (row.priceLevel ?? null) as PriceLevel | null,
     hours: row.hours ?? null,
-    is24Hours: Boolean(row.is24Hours ?? row.is_24_hours),
-    isPartnered: Boolean(row.isPartnered ?? row.is_partnered),
+    is24Hours: Boolean(row.is24Hours),
+    isPartnered: Boolean(row.isPartnered),
     address: row.address ?? null,
     description: row.description ?? null,
     lat: row.lat !== undefined && row.lat !== null ? Number(row.lat) : null,
     lng: row.lng !== undefined && row.lng !== null ? Number(row.lng) : null,
     tags: Array.isArray(row.tags) ? row.tags : [],
-    createdAt: row.createdAt ?? row.created_at ?? undefined,
-    updatedAt: row.updatedAt ?? row.updated_at ?? undefined,
+    createdAt: row.createdAt ?? undefined,
+    updatedAt: row.updatedAt ?? undefined,
   };
 
   const parsed = placeSchema.safeParse(candidate);

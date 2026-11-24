@@ -33,17 +33,18 @@ describe('PlacesService', () => {
     const mockRow = {
       id: 'place-1',
       name: 'Cafe Lotus',
-      name_km: null,
+      nameKm: null,
       area: 'BKK1',
       province: 'Phnom Penh',
       category: 'Cafe',
-      category_id: 'cafe',
+      categoryId: 'cafe',
       image: '/assets/cafe.webp',
+      photos: ['/assets/cafe.webp'],
       rating: 4.5,
-      reviews_count: 50,
-      price_level: '$$',
-      is_partnered: true,
-      is_24_hours: false,
+      reviewsCount: 50,
+      priceLevel: '$$',
+      isPartnered: true,
+      is24Hours: false,
       tags: ['coffee'],
     };
 
@@ -90,8 +91,9 @@ describe('PlacesService', () => {
       name: 'Cafe Lotus',
       area: 'BKK1',
       category: 'Cafe',
-      category_id: 'cafe',
+      categoryId: 'cafe',
       image: '/assets/cafe.webp',
+      photos: ['/assets/cafe.webp'],
     };
 
     const db = {
