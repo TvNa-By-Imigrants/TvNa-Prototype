@@ -16,6 +16,7 @@ describe('places contracts', () => {
       category: 'Bookstore Cafe',
       categoryId: 'cafe',
       image: '/assets/tsutayabookstore.webp',
+      photos: ['/assets/tsutayabookstore.webp', '/assets/tsutaya-interior.webp'],
       rating: 4.8,
       reviewsCount: 342,
       priceLevel: '$$',
@@ -29,6 +30,10 @@ describe('places contracts', () => {
     expect(parsed.priceLevel).toBe('$$');
     expect(parsed.isPartnered).toBe(true);
     expect(parsed.is24Hours).toBe(false);
+    expect(parsed.photos).toEqual([
+      '/assets/tsutayabookstore.webp',
+      '/assets/tsutaya-interior.webp',
+    ]);
   });
 
   it('validates and coerces places query params', () => {
@@ -77,6 +82,7 @@ describe('places contracts', () => {
 
     expect(parsed.total).toBe(1);
     expect(parsed.items).toHaveLength(1);
+    expect(parsed.items[0]?.photos).toEqual([]);
     expect(parsed.totalPages).toBe(1);
   });
 });

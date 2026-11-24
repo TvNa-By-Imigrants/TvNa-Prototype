@@ -39,6 +39,7 @@ export function HomeView() {
     return (
       <PlaceDetailPage
         place={selectedPlace}
+        photos={selectedPlace.photos}
         onBack={() => setSelectedPlace(null)}
       />
     )

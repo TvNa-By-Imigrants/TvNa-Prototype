@@ -150,6 +150,7 @@ export function PlacePage() {
     return (
       <PlaceDetailPage
         place={selectedPlace}
+        photos={selectedPlace.photos}
         onBack={() => setSelectedPlace(null)}
       />
     )

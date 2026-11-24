@@ -19,6 +19,7 @@ const mockPlace: Place = {
   category: 'Bookstore Cafe',
   categoryId: 'cafe',
   image: 'https://res.cloudinary.com/daqze8ogx/image/upload/v1/tsutaya.webp',
+  photos: ['https://res.cloudinary.com/daqze8ogx/image/upload/v1/tsutaya.webp'],
   rating: 4.8,
   reviewsCount: 342,
   priceLevel: '$$',

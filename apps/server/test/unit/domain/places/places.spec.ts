@@ -60,18 +60,19 @@ describe('domain places', () => {
   });
 
   describe('mapPlaceRow', () => {
-    it('maps database camelCase and snake_case rows to wire Place', () => {
+    it('maps database rows to wire Place', () => {
       const result = mapPlaceRow({
         id: 'tsutaya',
         name: 'Tatsuya Bookstore Cafe',
         area: 'BKK1',
         category: 'Cafe',
-        category_id: 'cafe',
+        categoryId: 'cafe',
         image: '/assets/tsutaya.webp',
-        price_level: '$$',
+        photos: ['/assets/tsutaya.webp', '/assets/tsutaya-interior.webp'],
+        priceLevel: '$$',
         rating: 4.8,
-        reviews_count: 100,
-        is_partnered: true,
+        reviewsCount: 100,
+        isPartnered: true,
         tags: ['coffee'],
       });
 
@@ -82,7 +83,12 @@ describe('domain places', () => {
         expect(result.value.priceLevel).toBe('$$');
         expect(result.value.isPartnered).toBe(true);
         expect(result.value.is24Hours).toBe(false);
+        expect(result.value.photos).toEqual([
+          '/assets/tsutaya.webp',
+          '/assets/tsutaya-interior.webp',
+        ]);
       }
     });
+
   });
 });
