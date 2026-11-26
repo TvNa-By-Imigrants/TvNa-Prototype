@@ -13,6 +13,7 @@ export class EffectRollback<E> extends Error {
 
 export interface EffectTransactionClient {
   execute: (query: SQL) => Promise<unknown>;
+  insert: AppDatabase['insert'];
 }
 
 export function runInTransaction<A, E>(
