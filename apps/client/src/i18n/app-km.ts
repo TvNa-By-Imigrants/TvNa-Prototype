@@ -35,6 +35,8 @@ export const appKm: TranslationDictionary = {
     stay: "កន្លែងស្នាក់នៅ",
     eat: "កន្លែងញ៉ាំ",
     cafe: "ហាងកាហ្វេ",
+    culture: "វប្បធម៌",
+    nature: "ធម្មជាតិ",
   },
   placePage: {
     title: "ស្វែងរកកន្លែង",
@@ -101,6 +103,13 @@ export const appKm: TranslationDictionary = {
     dragToReorder: "អូសដើម្បីរៀបលំដាប់",
     goNow: "ទៅឥឡូវ (គ្រប់កន្លែង)",
     missingCoordinates: "កន្លែងខ្លះមិនមានកូអរដោនេ មិនអាចបញ្ចូលក្នុងផ្លូវបានទេ។",
+    startTime: "ម៉ោងចាប់ផ្ដើម",
+    endTime: "ម៉ោងបញ្ចប់",
+    tags: "ស្លាក",
+    scheduleConflict: "មានបញ្ហាជាន់ម៉ោងគ្នាក្នុងកាលវិភាគ",
+    endBeforeStart: "ម៉ោងបញ្ចប់ត្រូវតែក្រោយម៉ោងចាប់ផ្ដើម",
+    outOfSequence: "លំដាប់ម៉ោងមិនត្រឹមត្រូវ: មុន {prevName}",
+    timeOverlap: "ជាន់ម៉ោងគ្នា: ជាន់គ្នាជាមួយ {prevName}",
   },
   notBuilt: {
     badge: "កំពុងរៀបចំ",

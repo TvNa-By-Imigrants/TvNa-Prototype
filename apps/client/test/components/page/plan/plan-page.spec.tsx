@@ -101,4 +101,107 @@ describe('PlanPage', () => {
       screen.getAllByRole('button', { name: /drag to reorder/i }),
     ).toHaveLength(2);
   });
+
+  it('allows user to assign start and end times', async () => {
+    localStorage.setItem(
+      'tvna.plan.stops',
+      JSON.stringify([stopOne]),
+    );
+    const user = userEvent.setup();
+    renderPlanPage();
+
+    const startInput = screen.getByLabelText(/coconut park cafe start time/i);
+    const endInput = screen.getByLabelText(/coconut park cafe end time/i);
+
+    await user.type(startInput, '09:00');
+    expect((startInput as HTMLInputElement).value).toBe('09:00');
+
+    await user.type(endInput, '10:30');
+    expect((endInput as HTMLInputElement).value).toBe('10:30');
+  });
+
+  it('allows user to select and toggle category tags', async () => {
+    localStorage.setItem(
+      'tvna.plan.stops',
+      JSON.stringify([stopOne]),
+    );
+    const user = userEvent.setup();
+    renderPlanPage();
+
+    const cafeTag = screen.getByRole('button', { name: /cafe tag/i });
+    expect(cafeTag.getAttribute('aria-pressed')).toBe('false');
+
+    await user.click(cafeTag);
+    expect(cafeTag.getAttribute('aria-pressed')).toBe('true');
+
+    await user.click(cafeTag);
+    expect(cafeTag.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('shows inline error when end time occurs before start time', async () => {
+    localStorage.setItem(
+      'tvna.plan.stops',
+      JSON.stringify([stopOne]),
+    );
+    const user = userEvent.setup();
+    renderPlanPage();
+
+    const startInput = screen.getByLabelText(/coconut park cafe start time/i);
+    const endInput = screen.getByLabelText(/coconut park cafe end time/i);
+
+    await user.type(startInput, '11:00');
+    await user.type(endInput, '10:00');
+
+    expect(
+      screen.getByText(/end time must be after start time/i),
+    ).toBeDefined();
+    expect(startInput.getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('shows inline error when stops are scheduled out of sequence', () => {
+    const outOfOrderStopOne: PlanStopItem = {
+      ...stopOne,
+      startTime: '14:00',
+      endTime: '15:00',
+    };
+    const outOfOrderStopTwo: PlanStopItem = {
+      ...stopTwo,
+      startTime: '09:00',
+      endTime: '10:00',
+    };
+
+    localStorage.setItem(
+      'tvna.plan.stops',
+      JSON.stringify([outOfOrderStopOne, outOfOrderStopTwo]),
+    );
+    renderPlanPage();
+
+    expect(
+      screen.getByText(/scheduled out of sequence: occurs before coconut park cafe/i),
+    ).toBeDefined();
+    expect(screen.getByText(/schedule conflicts detected/i)).toBeDefined();
+  });
+
+  it('shows inline warning when stops have overlapping times', () => {
+    const overlappingStopOne: PlanStopItem = {
+      ...stopOne,
+      startTime: '10:00',
+      endTime: '11:30',
+    };
+    const overlappingStopTwo: PlanStopItem = {
+      ...stopTwo,
+      startTime: '11:00',
+      endTime: '12:30',
+    };
+
+    localStorage.setItem(
+      'tvna.plan.stops',
+      JSON.stringify([overlappingStopOne, overlappingStopTwo]),
+    );
+    renderPlanPage();
+
+    expect(
+      screen.getByText(/time overlap: overlaps with coconut park cafe/i),
+    ).toBeDefined();
+  });
 });
