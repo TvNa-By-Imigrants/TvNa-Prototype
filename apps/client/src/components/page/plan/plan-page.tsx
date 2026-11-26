@@ -35,6 +35,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { SharePlanModal } from "@/components/molecules"
 import { useLanguage } from "@/i18n"
 import { usePlan, type PlanStopItem } from "@/lib/plan-context"
 import {
@@ -347,9 +348,12 @@ export function PlanPage() {
               {t("planPage.subtitle")}
             </p>
           </div>
-          <span className="inline-flex items-center rounded-full border border-primary-border bg-card/70 px-3 py-1 text-xs font-semibold text-primary-strong">
-            {t("planPage.stopCount").replace("{count}", String(stops.length))}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center rounded-full border border-primary-border bg-card/70 px-3 py-1 text-xs font-semibold text-primary-strong">
+              {t("planPage.stopCount").replace("{count}", String(stops.length))}
+            </span>
+            <SharePlanModal stops={stops} />
+          </div>
         </div>
       </section>
 
