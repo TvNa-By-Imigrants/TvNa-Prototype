@@ -24,6 +24,7 @@ export type PlanStopItem = {
 
 type PlanContextValue = {
   stops: PlanStopItem[]
+  replaceStops: (stops: PlanStopItem[]) => void
   addStop: (place: Place) => void
   removeStop: (placeId: string) => void
   reorderStops: (activeId: string, overId: string) => void
@@ -98,6 +99,10 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     )
   }
 
+  const replaceStops = (nextStops: PlanStopItem[]) => {
+    setStops(nextStops)
+  }
+
   const removeStop = (placeId: string) => {
     setStops((current) => current.filter((stop) => stop.placeId !== placeId))
   }
@@ -119,7 +124,7 @@ export function PlanProvider({ children }: { children: ReactNode }) {
 
   return (
     <PlanContext.Provider
-      value={{ stops, addStop, removeStop, reorderStops, updateStop }}
+      value={{ stops, replaceStops, addStop, removeStop, reorderStops, updateStop }}
     >
       {children}
     </PlanContext.Provider>

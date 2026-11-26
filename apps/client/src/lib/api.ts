@@ -1,4 +1,4 @@
-import type { ErrorEnvelope } from '@repo/contracts';
+import type { ErrorEnvelope, FieldIssue } from '@repo/contracts';
 
 export const AUTH_UNAUTHORIZED_EVENT = 'auth:unauthorized';
 
@@ -10,6 +10,7 @@ export class ApiRequestError extends Error {
     message: string,
     readonly code?: string,
     readonly statusCode?: number,
+    readonly errors?: FieldIssue[],
   ) {
     super(message);
     this.name = 'ApiRequestError';
@@ -61,6 +62,7 @@ export async function apiRequest<T>(
       envelope.message ?? `API request failed (${response.status})`,
       envelope.code,
       envelope.statusCode ?? response.status,
+      envelope.errors,
     );
   }
 

@@ -90,4 +90,32 @@ describe('apiRequest', () => {
     expect(listener).not.toHaveBeenCalled();
     dispose();
   });
+
+  it('preserves server field validation errors for inline display', async () => {
+    mockResponse(
+      {
+        statusCode: 400,
+        code: 'VALIDATION_ERROR',
+        message: 'Validation failed',
+        errors: [
+          {
+            path: 'items.0.endTime',
+            message: 'End time must be after start time',
+            code: 'custom',
+          },
+        ],
+      },
+      400,
+    );
+
+    await expect(apiRequest('/api/v1/plans', { method: 'POST' })).rejects.toMatchObject({
+      code: 'VALIDATION_ERROR',
+      errors: [
+        {
+          path: 'items.0.endTime',
+          message: 'End time must be after start time',
+        },
+      ],
+    });
+  });
 });
