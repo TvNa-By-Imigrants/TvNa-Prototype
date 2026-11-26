@@ -1,4 +1,5 @@
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   DndContext,
   KeyboardSensor,
@@ -29,6 +30,9 @@ import {
   SparklesIcon,
   TagIcon,
   Trash2Icon,
+  FolderOpenIcon,
+  SaveIcon,
+  FilePlus2Icon,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -38,6 +42,16 @@ import { Input } from "@/components/ui/input"
 import { SharePlanModal } from "@/components/molecules"
 import { useLanguage } from "@/i18n"
 import { usePlan, type PlanStopItem } from "@/lib/plan-context"
+import { ApiRequestError } from "@/lib/api"
+import {
+  createPlan,
+  deletePlan,
+  fetchPlanById,
+  fetchPlans,
+  updatePlan,
+} from "@/lib/plans-api"
+import { usePermissions } from "@/lib/permissions"
+import type { Plan, PlanInput } from "@repo/contracts"
 import {
   DEFAULT_PLAN_TAGS,
   validatePlanStops,
@@ -287,7 +301,86 @@ function SortableStop({
 
 export function PlanPage() {
   const { t } = useLanguage()
-  const { stops, reorderStops } = usePlan()
+  const { stops, reorderStops, replaceStops } = usePlan()
+  const { user, isLoading: isAuthLoading } = usePermissions()
+  const queryClient = useQueryClient()
+  const [title, setTitle] = useState("")
+  const [savedPlanId, setSavedPlanId] = useState("")
+  const [selectedPlanId, setSelectedPlanId] = useState("")
+  const [saveError, setSaveError] = useState("")
+  const [saveSuccess, setSaveSuccess] = useState(false)
+
+  const plansQuery = useQuery({
+    queryKey: ["plans"],
+    queryFn: fetchPlans,
+    enabled: Boolean(user) && !isAuthLoading,
+  })
+
+  const saveMutation = useMutation({
+    mutationFn: ({ id, input }: { id: string | null; input: PlanInput }) =>
+      id ? updatePlan(id, input) : createPlan(input),
+    onSuccess: async (plan) => {
+      setSavedPlanId(plan.id)
+      setSelectedPlanId(plan.id)
+      setTitle(plan.title)
+      replaceStops(stopsFromPlan(plan))
+      setSaveError("")
+      setSaveSuccess(true)
+      await queryClient.invalidateQueries({ queryKey: ["plans"] })
+    },
+    onError: (error: unknown) => {
+      const fieldErrors =
+        error instanceof ApiRequestError
+          ? error.errors?.map((issue) => issue.message)
+          : undefined
+      setSaveError(
+        fieldErrors?.length
+          ? [...new Set(fieldErrors)].join(" ")
+          : error instanceof Error
+            ? error.message
+            : t("planPage.saveError"),
+      )
+      setSaveSuccess(false)
+    },
+  })
+
+  const openMutation = useMutation({
+    mutationFn: fetchPlanById,
+    onSuccess: (plan) => {
+      setSavedPlanId(plan.id)
+      setSelectedPlanId(plan.id)
+      setTitle(plan.title)
+      replaceStops(stopsFromPlan(plan))
+      setSaveError("")
+      setSaveSuccess(false)
+    },
+    onError: (error: unknown) => {
+      setSaveError(
+        error instanceof Error ? error.message : t("planPage.loadError"),
+      )
+      setSaveSuccess(false)
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: deletePlan,
+    onSuccess: async (_result, deletedId) => {
+      if (savedPlanId === deletedId) {
+        setSavedPlanId("")
+        setTitle("")
+        replaceStops([])
+      }
+      setSelectedPlanId("")
+      setSaveError("")
+      setSaveSuccess(false)
+      await queryClient.invalidateQueries({ queryKey: ["plans"] })
+    },
+    onError: (error: unknown) => {
+      setSaveError(
+        error instanceof Error ? error.message : t("planPage.deleteError"),
+      )
+    },
+  })
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -324,6 +417,30 @@ export function PlanPage() {
     (v) => v.hasError || v.hasWarning,
   )
 
+  const saveCurrentPlan = () => {
+    const input: PlanInput = {
+      title: title.trim(),
+      items: stops.map((stop) => ({
+        placeId: stop.placeId,
+        startTime: stop.startTime || null,
+        endTime: stop.endTime || null,
+        tags: stop.tags ?? [],
+      })),
+    }
+    setSaveError("")
+    setSaveSuccess(false)
+    saveMutation.mutate({ id: savedPlanId || null, input })
+  }
+
+  const startNewPlan = () => {
+    setSavedPlanId("")
+    setSelectedPlanId("")
+    setTitle("")
+    replaceStops([])
+    setSaveError("")
+    setSaveSuccess(false)
+  }
+
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
       {/* Hero header */}
@@ -356,6 +473,148 @@ export function PlanPage() {
           </div>
         </div>
       </section>
+
+      <Card className="pt-0">
+        <CardContent className="flex flex-col gap-3 p-4 sm:p-5">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">
+              {t("planPage.savedPlansTitle")}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t("planPage.savedPlansDescription")}
+            </p>
+          </div>
+
+          {isAuthLoading ? (
+            <p role="status" className="text-sm text-muted-foreground">
+              {t("planPage.loadingPlans")}
+            </p>
+          ) : !user ? (
+            <p className="text-sm text-muted-foreground">
+              {t("planPage.signInToSave")}{" "}
+              <Link to="/sign-in" className="font-medium text-primary underline">
+                {t("planPage.signIn")}
+              </Link>
+            </p>
+          ) : (
+            <>
+              <label className="flex flex-col gap-1.5 text-sm font-medium">
+                {t("planPage.planName")}
+                <Input
+                  aria-label={t("planPage.planName")}
+                  value={title}
+                  maxLength={200}
+                  placeholder={t("planPage.planNamePlaceholder")}
+                  onChange={(event) => {
+                    setTitle(event.target.value)
+                    setSaveSuccess(false)
+                    setSaveError("")
+                  }}
+                />
+              </label>
+
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button
+                  type="button"
+                  className="gap-2"
+                  disabled={!title.trim() || saveMutation.isPending}
+                  onClick={saveCurrentPlan}
+                >
+                  <SaveIcon className="size-4" aria-hidden="true" />
+                  {saveMutation.isPending
+                    ? t("planPage.savingPlan")
+                    : t("planPage.savePlan")}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="gap-2"
+                  onClick={startNewPlan}
+                >
+                  <FilePlus2Icon className="size-4" aria-hidden="true" />
+                  {t("planPage.newPlan")}
+                </Button>
+              </div>
+
+              <div className="flex flex-col gap-2 border-t border-border/60 pt-3 sm:flex-row">
+                <label className="sr-only" htmlFor="saved-plan-select">
+                  {t("planPage.selectSavedPlan")}
+                </label>
+                <select
+                  id="saved-plan-select"
+                  className="h-10 min-w-0 flex-1 rounded-lg border border-input bg-background px-3 text-sm"
+                  value={selectedPlanId}
+                  onChange={(event) => setSelectedPlanId(event.target.value)}
+                  disabled={plansQuery.isLoading || !plansQuery.data?.plans.length}
+                >
+                  <option value="">{t("planPage.selectSavedPlan")}</option>
+                  {plansQuery.data?.plans.map((plan) => (
+                    <option key={plan.id} value={plan.id}>
+                      {plan.title}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="gap-2"
+                  disabled={!selectedPlanId || openMutation.isPending}
+                  onClick={() => openMutation.mutate(selectedPlanId)}
+                >
+                  <FolderOpenIcon className="size-4" aria-hidden="true" />
+                  {openMutation.isPending
+                    ? t("planPage.loadingPlan")
+                    : t("planPage.openPlan")}
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  className="gap-2"
+                  disabled={!selectedPlanId || deleteMutation.isPending}
+                  onClick={() => {
+                    if (window.confirm(t("planPage.confirmDeletePlan"))) {
+                      deleteMutation.mutate(selectedPlanId)
+                    }
+                  }}
+                >
+                  <Trash2Icon className="size-4" aria-hidden="true" />
+                  {t("planPage.deletePlan")}
+                </Button>
+              </div>
+
+              {plansQuery.isLoading ? (
+                <p role="status" className="text-sm text-muted-foreground">
+                  {t("planPage.loadingPlans")}
+                </p>
+              ) : null}
+              {plansQuery.isError ? (
+                <p role="alert" className="text-sm text-destructive">
+                  {plansQuery.error instanceof Error
+                    ? plansQuery.error.message
+                    : t("planPage.loadError")}
+                </p>
+              ) : null}
+              {!plansQuery.isLoading &&
+              !plansQuery.isError &&
+              plansQuery.data?.plans.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("planPage.noSavedPlans")}
+                </p>
+              ) : null}
+              {saveError ? (
+                <p role="alert" className="text-sm text-destructive">
+                  {saveError}
+                </p>
+              ) : null}
+              {saveSuccess ? (
+                <p role="status" className="text-sm text-primary">
+                  {t("planPage.planSaved")}
+                </p>
+              ) : null}
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       {stops.length === 0 ? (
         <Card className="mx-auto w-full max-w-xl pt-0">
@@ -462,4 +721,21 @@ export function PlanPage() {
       )}
     </div>
   )
+}
+
+function stopsFromPlan(plan: Plan): PlanStopItem[] {
+  return [...plan.items]
+    .sort((left, right) => left.order - right.order)
+    .map((item) => ({
+      placeId: item.placeId,
+      name: item.placeName,
+      nameKm: item.nameKm,
+      area: item.area,
+      image: item.image,
+      lat: item.lat,
+      lng: item.lng,
+      startTime: item.startTime ?? undefined,
+      endTime: item.endTime ?? undefined,
+      tags: item.tags,
+    }))
 }
