@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import {
   pgTable,
   text,
@@ -6,6 +7,8 @@ import {
   integer,
   real,
   index,
+  uniqueIndex,
+  check,
 } from 'drizzle-orm/pg-core';
 
 // better-auth tables (https://www.better-auth.com/docs/concepts/database)
@@ -109,10 +112,60 @@ export const place = pgTable(
   ],
 );
 
+export const dayPlan = pgTable(
+  'day_plan',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .references(() => user.id, { onDelete: 'cascade' })
+      .notNull(),
+    title: text('title').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (t) => [index('day_plan_user_id_idx').on(t.userId)],
+);
+
+export const itineraryItem = pgTable(
+  'itinerary_item',
+  {
+    id: text('id').primaryKey(),
+    planId: text('plan_id')
+      .references(() => dayPlan.id, { onDelete: 'cascade' })
+      .notNull(),
+    placeId: text('place_id')
+      .references(() => place.id, { onDelete: 'restrict' })
+      .notNull(),
+    position: integer('position').notNull(),
+    startTime: text('start_time'),
+    endTime: text('end_time'),
+    notes: text('notes'),
+    tags: text('tags').array().default([]).notNull(),
+  },
+  (t) => [
+    uniqueIndex('itinerary_item_plan_position_idx').on(t.planId, t.position),
+    uniqueIndex('itinerary_item_plan_place_idx').on(t.planId, t.placeId),
+    check(
+      'itinerary_item_start_time_format_check',
+      sql`${t.startTime} is null or ${t.startTime} ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'`,
+    ),
+    check(
+      'itinerary_item_end_time_format_check',
+      sql`${t.endTime} is null or ${t.endTime} ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'`,
+    ),
+    check(
+      'itinerary_item_time_range_check',
+      sql`${t.startTime} is null or ${t.endTime} is null or ${t.endTime} > ${t.startTime}`,
+    ),
+  ],
+);
+
 export const schema = {
   user,
   session,
   account,
   verification,
   place,
+  dayPlan,
+  itineraryItem,
 };

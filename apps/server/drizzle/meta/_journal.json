@@ -22,6 +22,13 @@
       "when": 1795428006423,
       "tag": "0002_hesitant_corsair",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795671624796,
+      "tag": "0003_plan_itinerary_management",
+      "breakpoints": true
     }
   ]
 }

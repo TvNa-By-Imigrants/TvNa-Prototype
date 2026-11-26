@@ -16,6 +16,7 @@ import { UsersModule } from './modules/users/users.module.ts';
 import { MeModule } from './modules/me/me.module.ts';
 import { PokemonModule } from './modules/pokemon/pokemon.module.ts';
 import { PlacesModule } from './modules/places/places.module.ts';
+import { PlansModule } from './modules/plans/plans.module.ts';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { PlacesModule } from './modules/places/places.module.ts';
     MeModule,
     PokemonModule,
     PlacesModule,
+    PlansModule,
   ],
   providers: [
     {
