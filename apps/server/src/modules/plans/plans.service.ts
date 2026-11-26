@@ -8,6 +8,7 @@ import { planInputSchema } from '@repo/contracts';
 import { extractRows } from '../../common/db.ts';
 import {
   DbFailure,
+  fromResult,
   parse,
   runInTransaction,
   tryDb,
@@ -18,70 +19,10 @@ import {
 import { ERROR_CODES } from '../../common/errors/codes.ts';
 import type { AppDatabase } from '../../database.ts';
 import { domainError, type DomainError } from '../../domain/shared/errors.ts';
+import { mapPlanRows, type PlanJoinRow } from '../../domain/plans/plans.ts';
+import { dayPlan, itineraryItem } from '../../db/schema.ts';
 
 type PlansError = DomainError | DbFailure | ValidationFailure;
-
-type PlanJoinRow = {
-  plan_id: string;
-  plan_title: string;
-  plan_created_at: Date | string;
-  plan_updated_at: Date | string;
-  item_id: string | null;
-  place_id: string | null;
-  position: number | null;
-  start_time: string | null;
-  end_time: string | null;
-  notes: string | null;
-  tags: string[] | null;
-  place_name: string | null;
-  place_name_km: string | null;
-  place_area: string | null;
-  place_image: string | null;
-  place_lat: number | string | null;
-  place_lng: number | string | null;
-};
-
-function toIso(value: Date | string): string {
-  return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
-}
-
-function mapPlanRows(rows: PlanJoinRow[]): Plan[] {
-  const plans = new Map<string, Plan>();
-
-  for (const row of rows) {
-    let plan = plans.get(row.plan_id);
-    if (!plan) {
-      plan = {
-        id: row.plan_id,
-        title: row.plan_title,
-        items: [],
-        createdAt: toIso(row.plan_created_at),
-        updatedAt: toIso(row.plan_updated_at),
-      };
-      plans.set(plan.id, plan);
-    }
-
-    if (row.item_id !== null && row.place_id !== null) {
-      plan.items.push({
-        id: row.item_id,
-        placeId: row.place_id,
-        order: row.position!,
-        placeName: row.place_name!,
-        nameKm: row.place_name_km,
-        area: row.place_area!,
-        image: row.place_image!,
-        lat: row.place_lat === null ? null : Number(row.place_lat),
-        lng: row.place_lng === null ? null : Number(row.place_lng),
-        startTime: row.start_time,
-        endTime: row.end_time,
-        notes: row.notes,
-        tags: row.tags ?? [],
-      });
-    }
-  }
-
-  return [...plans.values()];
-}
 
 function selectPlanRows(
   db: AppDatabase,
@@ -136,10 +77,11 @@ export class PlansService {
         Effect.gen(function* () {
           yield* self.validatePlaces(tx, input);
           yield* tryDb(() =>
-            tx.execute(sql`
-              insert into day_plan (id, user_id, title, created_at, updated_at)
-              values (${id}, ${userId}, ${input.title}, now(), now())
-            `),
+            tx.insert(dayPlan).values({
+              id,
+              userId,
+              title: input.title,
+            }),
           );
           yield* self.replaceItems(tx, id, input);
         }),
@@ -152,7 +94,11 @@ export class PlansService {
   list(userId: string): Effect.Effect<PlansList, PlansError> {
     return withResilience(
       selectPlanRows(this.db, userId).pipe(
-        Effect.map((rows) => ({ plans: mapPlanRows(rows) })),
+        Effect.flatMap((rows) =>
+          fromResult(mapPlanRows(rows)).pipe(
+            Effect.map((plans) => ({ plans })),
+          ),
+        ),
       ),
       { idempotent: true, timeoutMs: 5000 },
     );
@@ -162,12 +108,15 @@ export class PlansService {
     return withResilience(
       selectPlanRows(this.db, userId, id).pipe(
         Effect.flatMap((rows) => {
-          const plan = mapPlanRows(rows)[0];
-          return plan
-            ? Effect.succeed(plan)
-            : Effect.fail(
+          return fromResult(mapPlanRows(rows)).pipe(
+            Effect.flatMap(([plan]) =>
+              plan
+                ? Effect.succeed(plan)
+                : Effect.fail(
                 domainError(ERROR_CODES.NOT_FOUND, 'Plan not found', 404),
-              );
+                  ),
+            ),
+          );
         }),
       ),
       { idempotent: true, timeoutMs: 5000 },
@@ -270,24 +219,19 @@ export class PlansService {
   ): Effect.Effect<void, DbFailure> {
     if (input.items.length === 0) return Effect.void;
 
-    const values = input.items.map(
-      (item, position) => sql`(
-        ${randomUUID()},
-        ${planId},
-        ${item.placeId},
-        ${position},
-        ${item.startTime ?? null},
-        ${item.endTime ?? null},
-        ${item.notes ?? null},
-        ${item.tags}
-      )`,
-    );
     return tryDb(() =>
-      tx.execute(sql`
-        insert into itinerary_item
-          (id, plan_id, place_id, position, start_time, end_time, notes, tags)
-        values ${sql.join(values, sql`, `)}
-      `),
+      tx.insert(itineraryItem).values(
+        input.items.map((item, position) => ({
+          id: randomUUID(),
+          planId,
+          placeId: item.placeId,
+          position,
+          startTime: item.startTime ?? null,
+          endTime: item.endTime ?? null,
+          notes: item.notes ?? null,
+          tags: item.tags,
+        })),
+      ),
     ).pipe(Effect.asVoid);
   }
 }
