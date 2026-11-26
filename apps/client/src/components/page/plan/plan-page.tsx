@@ -508,6 +508,7 @@ export function PlanPage() {
                   onChange={(event) => {
                     setTitle(event.target.value)
                     setSaveSuccess(false)
+                    setSaveError("")
                   }}
                 />
               </label>
