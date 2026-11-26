@@ -4,5 +4,6 @@ export * from "./copy-button";
 export * from "./count-badge";
 export * from "./indicator-dot";
 export * from "./modal-backdrop";
+export * from "./permission-indicator";
 export * from "./read-only-badge";
 export * from "./status-badge";
