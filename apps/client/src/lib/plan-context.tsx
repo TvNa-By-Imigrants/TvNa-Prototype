@@ -17,6 +17,9 @@ export type PlanStopItem = {
   image: string
   lat?: number | null
   lng?: number | null
+  startTime?: string
+  endTime?: string
+  tags?: string[]
 }
 
 type PlanContextValue = {
@@ -24,6 +27,10 @@ type PlanContextValue = {
   addStop: (place: Place) => void
   removeStop: (placeId: string) => void
   reorderStops: (activeId: string, overId: string) => void
+  updateStop: (
+    placeId: string,
+    patch: Partial<Pick<PlanStopItem, "startTime" | "endTime" | "tags">>,
+  ) => void
 }
 
 const PlanContext = createContext<PlanContextValue | null>(null)
@@ -85,6 +92,7 @@ export function PlanProvider({ children }: { children: ReactNode }) {
               image: place.image,
               lat: place.lat,
               lng: place.lng,
+              tags: place.category ? [place.category.toLowerCase()] : [],
             },
           ],
     )
@@ -98,8 +106,21 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     setStops((current) => reorderStopList(current, activeId, overId))
   }
 
+  const updateStop = (
+    placeId: string,
+    patch: Partial<Pick<PlanStopItem, "startTime" | "endTime" | "tags">>,
+  ) => {
+    setStops((current) =>
+      current.map((stop) =>
+        stop.placeId === placeId ? { ...stop, ...patch } : stop,
+      ),
+    )
+  }
+
   return (
-    <PlanContext.Provider value={{ stops, addStop, removeStop, reorderStops }}>
+    <PlanContext.Provider
+      value={{ stops, addStop, removeStop, reorderStops, updateStop }}
+    >
       {children}
     </PlanContext.Provider>
   )

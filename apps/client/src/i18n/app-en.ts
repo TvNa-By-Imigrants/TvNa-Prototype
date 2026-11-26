@@ -33,6 +33,8 @@ export const appEn = {
     stay: "Stay",
     eat: "Eat",
     cafe: "Cafe",
+    culture: "Culture",
+    nature: "Nature",
   },
   placePage: {
     title: "Discover Places",
@@ -99,6 +101,13 @@ export const appEn = {
     dragToReorder: "Drag to reorder",
     goNow: "Go Now (all stops)",
     missingCoordinates: "Some stops have no coordinates and cannot be included in directions.",
+    startTime: "Start time",
+    endTime: "End time",
+    tags: "Tags",
+    scheduleConflict: "Schedule conflicts detected",
+    endBeforeStart: "End time must be after start time",
+    outOfSequence: "Scheduled out of sequence: occurs before {prevName}",
+    timeOverlap: "Time overlap: overlaps with {prevName}",
   },
   notBuilt: {
     badge: "Under Construction",
