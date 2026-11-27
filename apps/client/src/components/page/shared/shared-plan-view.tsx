@@ -31,10 +31,25 @@ function directionsUrl(stops: PlanStopItem[]): string | null {
 export type SharedPlanViewProps = {
   stops: PlanStopItem[] | null
   token?: string
+  isLoading?: boolean
 }
 
-export function SharedPlanView({ stops, token }: SharedPlanViewProps) {
+export function SharedPlanView({
+  stops,
+  token,
+  isLoading = false,
+}: SharedPlanViewProps) {
   const { language, t } = useLanguage()
+
+  if (isLoading) {
+    return (
+      <Card className="mx-auto w-full max-w-lg">
+        <CardContent className="p-8 text-center text-sm text-muted-foreground">
+          <p role="status">{t("guest.loading")}</p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   if (!stops) {
     return (

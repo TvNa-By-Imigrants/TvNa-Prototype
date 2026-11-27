@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react"
+import { useState } from "react"
+import { useMutation } from "@tanstack/react-query"
 import { Share2Icon } from "lucide-react"
 
 import { CopyButton, PermissionIndicator } from "@/components/atom/common"
@@ -14,30 +15,41 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { useLanguage } from "@/i18n"
-import type { PlanStopItem } from "@/lib/plan-context"
 import { createShareUrl } from "@/lib/share-plan"
+import { sharePlan } from "@/lib/plans-api"
 
 export type SharePlanModalProps = {
-  stops: PlanStopItem[]
+  planId: string | null
+  disabled?: boolean
 }
 
-export function SharePlanModal({ stops }: SharePlanModalProps) {
+export function SharePlanModal({ planId, disabled = false }: SharePlanModalProps) {
   const { language, t } = useLanguage()
   const [open, setOpen] = useState(false)
+  const [shareLink, setShareLink] = useState<{
+    planId: string
+    url: string
+  } | null>(null)
+  const shareMutation = useMutation({
+    mutationFn: sharePlan,
+    onSuccess: ({ token }, planId) =>
+      setShareLink({ planId, url: createShareUrl(token) }),
+  })
+  const shareUrl = shareLink?.planId === planId ? shareLink.url : ""
 
-  const share = useMemo(() => {
-    if (stops.length === 0) return { url: "", error: null }
-    try {
-      return { url: createShareUrl(stops), error: null }
-    } catch {
-      return { url: "", error: t("share.errorTooLong") }
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen)
+    if (nextOpen && planId && shareLink?.planId !== planId) {
+      if (!shareMutation.isPending) shareMutation.mutate(planId)
+    } else if (nextOpen && !planId) {
+      shareMutation.reset()
     }
-  }, [stops, t])
+  }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
-        render={<Button variant="outline" className="gap-2" disabled={stops.length === 0} />}
+        render={<Button variant="outline" className="gap-2" disabled={disabled} />}
       >
         <Share2Icon className="size-4" aria-hidden="true" />
         {t("placeDetail.share")}
@@ -63,23 +75,29 @@ export function SharePlanModal({ stops }: SharePlanModalProps) {
             <Input
               id="share-link"
               readOnly
-              value={share.url}
+              value={shareUrl}
               onFocus={(event) => event.target.select()}
               aria-label={t("share.linkLabel")}
               className="min-w-0 flex-1 text-sm"
             />
             <CopyButton
-              textToCopy={share.url}
+              textToCopy={shareUrl}
               copyLabel={t("share.copy")}
               copiedLabel={t("share.copied")}
               showText
               language={language}
-              disabled={!share.url}
+              disabled={!shareUrl}
             />
           </div>
-          {share.error ? (
+          {!planId ? (
+            <p className="text-sm text-muted-foreground">{t("share.saveFirst")}</p>
+          ) : shareMutation.isPending ? (
+            <p role="status" className="text-sm text-muted-foreground">
+              {t("share.generating")}
+            </p>
+          ) : shareMutation.isError ? (
             <p role="alert" className="text-sm text-destructive">
-              {share.error}
+              {t("share.errorGenerating")}
             </p>
           ) : null}
         </div>

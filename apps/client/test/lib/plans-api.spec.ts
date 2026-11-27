@@ -5,6 +5,8 @@ import {
   deletePlan,
   fetchPlanById,
   fetchPlans,
+  fetchSharedPlan,
+  sharePlan,
   updatePlan,
 } from '@/lib/plans-api';
 
@@ -67,6 +69,26 @@ describe('plans-api', () => {
 
     await expect(fetchPlanById('plan / 1')).resolves.toEqual(plan);
     expect(mockedApiRequest).toHaveBeenCalledWith('/api/v1/plans/plan%20%2F%201');
+  });
+
+  it('fetches a shared plan by its token', async () => {
+    mockedApiRequest.mockResolvedValueOnce({ plan });
+
+    await expect(fetchSharedPlan('share/token')).resolves.toEqual(plan);
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      '/api/v1/plans/shared/share%2Ftoken',
+    );
+  });
+
+  it('generates and validates a server share token', async () => {
+    const share = { token: 'a'.repeat(43) };
+    mockedApiRequest.mockResolvedValueOnce(share);
+
+    await expect(sharePlan('plan / 1')).resolves.toEqual(share);
+    expect(mockedApiRequest).toHaveBeenCalledWith(
+      '/api/v1/plans/plan%20%2F%201/share',
+      { method: 'POST' },
+    );
   });
 
   it('creates plans with all itinerary data in order', async () => {
