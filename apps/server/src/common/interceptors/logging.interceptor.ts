@@ -20,6 +20,13 @@ function statusFromError(error: unknown): number {
   return HttpStatus.INTERNAL_SERVER_ERROR;
 }
 
+function redactShareToken(url: string): string {
+  return url.replace(
+    /(^|\/api\/v1\/plans\/shared\/)[^/?]+(?=\/|\?|$)/,
+    (_match, prefix: string) => `${prefix}[REDACTED]`,
+  );
+}
+
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
   private readonly logger = new Logger('HttpRequest');
@@ -64,7 +71,7 @@ export class LoggingInterceptor implements NestInterceptor {
         traceId,
         userId,
         method: request.method,
-        url: request.url,
+        url: redactShareToken(request.url),
         status,
         durationMs: Date.now() - startedAt,
       }),

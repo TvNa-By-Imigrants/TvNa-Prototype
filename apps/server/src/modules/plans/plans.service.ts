@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { Effect } from 'effect';
 import { sql } from 'drizzle-orm';
 import { InjectDrizzle } from '@nest-native/drizzle';
-import type { Plan, PlanInput, PlansList } from '@repo/contracts';
+import type { Plan, PlanInput, PlanShare, PlansList } from '@repo/contracts';
 import { planInputSchema } from '@repo/contracts';
 import { extractRows } from '../../common/db.ts';
 import {
@@ -26,12 +26,14 @@ type PlansError = DomainError | DbFailure | ValidationFailure;
 
 function selectPlanRows(
   db: AppDatabase,
-  userId: string,
-  id?: string,
+  filter: { userId: string; id?: string } | { shareTokenHash: string },
 ): Effect.Effect<PlanJoinRow[], DbFailure> {
-  const condition = id
-    ? sql`and p.id = ${id}`
-    : sql``;
+  const condition =
+    'userId' in filter
+      ? sql`p.user_id = ${filter.userId} ${
+          filter.id ? sql`and p.id = ${filter.id}` : sql``
+        }`
+      : sql`p.share_token_hash = ${filter.shareTokenHash}`;
   return tryDb(() =>
     db.execute(sql`
       select
@@ -55,12 +57,16 @@ function selectPlanRows(
       from day_plan p
       left join itinerary_item i on i.plan_id = p.id
       left join place pl on pl.id = i.place_id
-      where p.user_id = ${userId} ${condition}
+      where ${condition}
       order by p.created_at desc, i.position asc
     `),
   ).pipe(
     Effect.map((result) => extractRows<PlanJoinRow>(result)),
   );
+}
+
+function hashShareToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
 }
 
 @Injectable()
@@ -93,7 +99,7 @@ export class PlansService {
 
   list(userId: string): Effect.Effect<PlansList, PlansError> {
     return withResilience(
-      selectPlanRows(this.db, userId).pipe(
+      selectPlanRows(this.db, { userId }).pipe(
         Effect.flatMap((rows) =>
           fromResult(mapPlanRows(rows)).pipe(
             Effect.map((plans) => ({ plans })),
@@ -106,7 +112,7 @@ export class PlansService {
 
   getById(userId: string, id: string): Effect.Effect<Plan, PlansError> {
     return withResilience(
-      selectPlanRows(this.db, userId, id).pipe(
+      selectPlanRows(this.db, { userId, id }).pipe(
         Effect.flatMap((rows) => {
           return fromResult(mapPlanRows(rows)).pipe(
             Effect.flatMap(([plan]) =>
@@ -121,6 +127,51 @@ export class PlansService {
       ),
       { idempotent: true, timeoutMs: 5000 },
     );
+  }
+
+  getSharedByToken(token: string): Effect.Effect<Plan, PlansError> {
+    return withResilience(
+      selectPlanRows(this.db, { shareTokenHash: hashShareToken(token) }).pipe(
+        Effect.flatMap((rows) =>
+          fromResult(mapPlanRows(rows)).pipe(
+            Effect.flatMap(([plan]) =>
+              plan
+                ? Effect.succeed(plan)
+                : Effect.fail(
+                    domainError(ERROR_CODES.NOT_FOUND, 'Plan not found', 404),
+                  ),
+            ),
+          ),
+        ),
+      ),
+      { idempotent: true, timeoutMs: 5000 },
+    );
+  }
+
+  share(userId: string, id: string): Effect.Effect<PlanShare, PlansError> {
+    const self = this;
+    const token = randomBytes(32).toString('base64url');
+    const shareTokenHash = hashShareToken(token);
+
+    return Effect.gen(function* () {
+      const updated = extractRows<{ id: string }>(
+        yield* tryDb(() =>
+          self.db.execute(sql`
+            update day_plan
+            set share_token_hash = ${shareTokenHash}
+            where id = ${id} and user_id = ${userId}
+            returning id
+          `),
+        ),
+      );
+      if (updated.length === 0) {
+        return yield* Effect.fail(
+          domainError(ERROR_CODES.NOT_FOUND, 'Plan not found', 404),
+        );
+      }
+
+      return { token };
+    });
   }
 
   update(

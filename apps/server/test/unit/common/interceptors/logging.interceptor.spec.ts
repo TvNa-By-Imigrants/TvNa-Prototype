@@ -60,6 +60,22 @@ describe('LoggingInterceptor', () => {
     expect(payload).toMatchObject({ event: 'http.request', status: 400 });
   });
 
+  it('redacts shared-plan tokens from request URLs', async () => {
+    const logSpy = vi.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
+    const { context } = createContext();
+    const request = context.switchToHttp().getRequest() as { url: string };
+    request.url = '/api/v1/plans/shared/secret-token?preview=true';
+    const next = { handle: () => of({ ok: true }) } as CallHandler;
+
+    await firstValueFrom(new LoggingInterceptor().intercept(context, next));
+
+    const payload = JSON.parse(logSpy.mock.calls[0][0] as string);
+    expect(payload.url).toBe(
+      '/api/v1/plans/shared/[REDACTED]?preview=true',
+    );
+    expect(payload.url).not.toContain('secret-token');
+  });
+
   it('passes through non-http contexts', () => {
     const { context } = createContext('rpc');
     const next = { handle: () => of('rpc-result') } as CallHandler;

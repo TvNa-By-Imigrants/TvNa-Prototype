@@ -1,4 +1,6 @@
+import type { SQL } from 'drizzle-orm';
 import { PgDialect } from 'drizzle-orm/pg-core';
+import { createHash } from 'node:crypto';
 import { describe, expect, it, vi } from 'vitest';
 import { dayPlan, itineraryItem } from '../../../../src/db/schema.ts';
 import { PlansService } from '../../../../src/modules/plans/plans.service.ts';
@@ -80,6 +82,59 @@ describe('PlansService ownership', () => {
     });
     expect(query.sql).toContain('where id = $1 and user_id = $2');
     expect(query.params).toEqual(['plan-1', 'user-1']);
+  });
+});
+
+describe('PlansService sharing', () => {
+  it('issues a high-entropy share token scoped to its owner and stores only its hash', async () => {
+    const { db } = createDb([{ rows: [{ id: 'plan-1' }] }]);
+    const service = new PlansService(db as never);
+
+    const result = await runEffect(service.share('user-1', 'plan-1'));
+    const query = dialect.sqlToQuery(
+      (db.execute.mock.calls as unknown as [SQL][])[0]![0],
+    );
+    const [tokenHash] = query.params as string[];
+
+    expect(result.token).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    expect(query.sql.replace(/\s+/g, ' ')).toContain(
+      'update day_plan set share_token_hash = $1 where id = $2 and user_id = $3 returning id',
+    );
+    expect(tokenHash).toBe(
+      createHash('sha256').update(result.token).digest('hex'),
+    );
+    expect(query.params).toEqual([tokenHash, 'plan-1', 'user-1']);
+  });
+
+  it('retrieves a shared plan using only the token hash', async () => {
+    const token = 'safe-share-token';
+    const { db } = createDb([{ rows: [joinedPlanRow()] }]);
+    const service = new PlansService(db as never);
+
+    const result = await runEffect(service.getSharedByToken(token));
+    const query = dialect.sqlToQuery(
+      (db.execute.mock.calls as unknown as [SQL][])[0]![0],
+    );
+
+    expect(result.id).toBe('plan-1');
+    expect(query.sql).toContain('where p.share_token_hash = $1');
+    expect(query.params).toEqual([
+      createHash('sha256').update(token).digest('hex'),
+    ]);
+  });
+
+  it('returns not found for an invalid share token', async () => {
+    const { db } = createDb([{ rows: [] }]);
+    const service = new PlansService(db as never);
+
+    const result = await runEffectResult(
+      service.getSharedByToken('invalid-token'),
+    );
+
+    expect(result).toMatchObject({
+      _tag: 'Failure',
+      failure: { code: 'NOT_FOUND', statusCode: 404 },
+    });
   });
 });
 

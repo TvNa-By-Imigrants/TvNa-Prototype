@@ -10,6 +10,8 @@ function createController() {
     create: vi.fn(),
     list: vi.fn(),
     getById: vi.fn(),
+    getSharedByToken: vi.fn(),
+    share: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
   };
@@ -58,6 +60,41 @@ describe('PlansController', () => {
     expect(service.getById).toHaveBeenCalledWith('user-1', 'plan-1');
     expect(service.update).toHaveBeenCalledWith('user-1', 'plan-1', input);
     expect(service.delete).toHaveBeenCalledWith('user-1', 'plan-1');
+  });
+
+  it('creates a share token for the authenticated owner', async () => {
+    const { controller, service } = createController();
+    service.share.mockReturnValue(Effect.succeed({ token: 'a'.repeat(43) }));
+
+    await expect(controller.share('plan-1', request)).resolves.toEqual({
+      token: 'a'.repeat(43),
+    });
+    expect(service.share).toHaveBeenCalledWith('user-1', 'plan-1');
+  });
+
+  it('serves shared plans without requiring an authenticated user', async () => {
+    const { controller, service } = createController();
+    service.getSharedByToken.mockReturnValue(Effect.succeed(plan));
+
+    await expect(controller.findShared('share-token')).resolves.toEqual({
+      plan,
+    });
+    expect(service.getSharedByToken).toHaveBeenCalledWith('share-token');
+  });
+
+  it('rejects unauthenticated plan mutations before calling the service', async () => {
+    const { controller, service } = createController();
+
+    await expect(controller.update('share-token', input, {} as never)).rejects
+      .toBeInstanceOf(UnauthorizedException);
+    await expect(controller.delete('share-token', {} as never)).rejects
+      .toBeInstanceOf(UnauthorizedException);
+    await expect(controller.share('plan-1', {} as never)).rejects
+      .toBeInstanceOf(UnauthorizedException);
+
+    expect(service.update).not.toHaveBeenCalled();
+    expect(service.delete).not.toHaveBeenCalled();
+    expect(service.share).not.toHaveBeenCalled();
   });
 
   it('rejects unauthenticated access before calling the service', async () => {

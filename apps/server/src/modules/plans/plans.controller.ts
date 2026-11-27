@@ -13,7 +13,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
-import type { Plan, PlanInput, PlansList } from '@repo/contracts';
+import type { Plan, PlanInput, PlanShare, PlansList } from '@repo/contracts';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe.ts';
 import { runEffect } from '../../common/effect/run.ts';
 import { planInputSchema } from '@repo/contracts';
@@ -54,6 +54,14 @@ export class PlansController {
     return runEffect(this.plansService.list(requireUserId(request)));
   }
 
+  @Get('shared/:token')
+  async findShared(
+    @Param('token') token: string,
+  ): Promise<{ plan: Plan }> {
+    const plan = await runEffect(this.plansService.getSharedByToken(token));
+    return { plan };
+  }
+
   @Get(':id')
   async findOne(
     @Param('id') id: string,
@@ -63,6 +71,14 @@ export class PlansController {
       this.plansService.getById(requireUserId(request), id),
     );
     return { plan };
+  }
+
+  @Post(':id/share')
+  async share(
+    @Param('id') id: string,
+    @Req() request: AuthenticatedRequest,
+  ): Promise<PlanShare> {
+    return runEffect(this.plansService.share(requireUserId(request), id));
   }
 
   @Put(':id')

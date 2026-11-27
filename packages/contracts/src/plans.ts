@@ -139,3 +139,8 @@ export const plansListSchema = z.object({
   plans: z.array(planSchema),
 });
 export type PlansList = z.infer<typeof plansListSchema>;
+
+export const planShareSchema = z.object({
+  token: z.string().length(43),
+});
+export type PlanShare = z.infer<typeof planShareSchema>;
