@@ -55,6 +55,7 @@ describe('SharedPlanRoute', () => {
       permissions: [],
       isLoading: false,
       has: () => false,
+      refresh: vi.fn(),
     });
   });
 

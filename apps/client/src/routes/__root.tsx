@@ -1,4 +1,4 @@
-import { createRootRoute, Outlet, ScrollRestoration, useRouterState } from '@tanstack/react-router'
+import { createRootRoute, Outlet, ScrollRestoration } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { Toaster } from 'sonner'
 import { LanguageProvider } from '@/i18n'
@@ -7,23 +7,15 @@ import { PlanProvider } from '@/lib/plan-context'
 import { AppShell } from '@/components/shell'
 
 function RootLayout() {
-  const isSignIn = useRouterState({
-    select: (s) => s.location.pathname === '/sign-in',
-  })
-
   return (
     <LanguageProvider>
       <PermissionsProvider>
         <PlanProvider>
           <ScrollRestoration />
-          {isSignIn ? (
+          <AppShell>
             <Outlet />
-          ) : (
-            <AppShell>
-              <Outlet />
-            </AppShell>
-          )}
-          <Toaster richColors position="top-right" />
+          </AppShell>
+          <Toaster richColors position="bottom-right" />
           <TanStackRouterDevtools />
         </PlanProvider>
       </PermissionsProvider>

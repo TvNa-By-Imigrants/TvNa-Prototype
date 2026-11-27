@@ -43,6 +43,7 @@ import { SharePlanModal } from "@/components/molecules"
 import { useLanguage } from "@/i18n"
 import { usePlan, type PlanStopItem } from "@/lib/plan-context"
 import { ApiRequestError } from "@/lib/api"
+import { openAuthDialog } from "@/lib/auth-dialog"
 import {
   createPlan,
   deletePlan,
@@ -492,9 +493,13 @@ export function PlanPage() {
           ) : !user ? (
             <p className="text-sm text-muted-foreground">
               {t("planPage.signInToSave")}{" "}
-              <Link to="/sign-in" className="font-medium text-primary underline">
+              <button
+                type="button"
+                onClick={() => openAuthDialog("login")}
+                className="font-medium text-primary underline"
+              >
                 {t("planPage.signIn")}
-              </Link>
+              </button>
             </p>
           ) : (
             <>

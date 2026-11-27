@@ -46,6 +46,7 @@ describe('buildAuthOptions', () => {
       max: RATE_LIMIT_MAX,
       customRules: {
         '/sign-in/email': { window: 60, max: 100 },
+        '/sign-up/email': { window: 60, max: 100 },
       },
     });
   });
@@ -60,12 +61,12 @@ describe('buildAuthOptions', () => {
     });
   });
 
-  it('disables public sign-ups and registers admin + bearer plugins', () => {
+  it('enables public sign-ups and registers admin + bearer plugins', () => {
     const options = buildAuthOptions({}, fakeDatabase);
 
     expect(options.emailAndPassword).toEqual({
       enabled: true,
-      disableSignUp: true,
+      disableSignUp: false,
     });
     expect(options.plugins).toHaveLength(2);
   });

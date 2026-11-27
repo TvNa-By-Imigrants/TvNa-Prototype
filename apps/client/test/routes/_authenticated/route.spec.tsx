@@ -6,6 +6,10 @@ vi.mock('@/lib/auth', () => ({
   signOut: vi.fn(),
 }))
 
+vi.mock('@/lib/auth-dialog', () => ({
+  openAuthDialog: vi.fn(),
+}))
+
 vi.mock('@/lib/permissions', () => ({
   usePermissions: () => ({
     user: null,
@@ -15,6 +19,7 @@ vi.mock('@/lib/permissions', () => ({
   }),
 }))
 
+import { openAuthDialog } from '@/lib/auth-dialog'
 import { Route } from '@/routes/_authenticated/route'
 
 const mockedGetSession = vi.mocked(getSession)
@@ -35,17 +40,15 @@ describe('authenticated layout guard', () => {
     mockedGetSession.mockReset()
   })
 
-  it('redirects a signed-out visitor to sign-in with the attempted path', async () => {
+  it('sends a signed-out visitor home and asks for the dialog', async () => {
     mockedGetSession.mockResolvedValue({ data: null } as never)
 
     const result = (await runGuard('/Driver-list')) as {
-      options?: { to?: string; search?: unknown }
+      options?: { to?: string }
     }
 
-    expect(result.options).toMatchObject({
-      to: '/sign-in',
-      search: { redirect: '/Driver-list' },
-    })
+    expect(result.options).toMatchObject({ to: '/' })
+    expect(openAuthDialog).toHaveBeenCalledWith('login')
   })
 
   it('allows a signed-in visitor through', async () => {

@@ -22,7 +22,7 @@ describe('SignOutButton', () => {
     mockedSignOut.mockReset()
   })
 
-  it('signs out on the server and returns to sign-in', async () => {
+  it('signs out on the server and leaves the signed-in-only page', async () => {
     mockedSignOut.mockResolvedValue(undefined)
     const user = userEvent.setup()
     render(<SignOutButton label="Sign out" />)
@@ -31,7 +31,7 @@ describe('SignOutButton', () => {
 
     await waitFor(() => expect(mockedSignOut).toHaveBeenCalledTimes(1))
     await waitFor(() =>
-      expect(navigate).toHaveBeenCalledWith({ to: '/sign-in' }),
+      expect(navigate).toHaveBeenCalledWith({ to: '/' }),
     )
   })
 })

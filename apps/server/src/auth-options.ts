@@ -52,7 +52,7 @@ export function buildAuthOptions(env: AuthEnv, database: DrizzleDatabase) {
     ],
     emailAndPassword: {
       enabled: true,
-      disableSignUp: true,
+      disableSignUp: false,
     },
     user: {
       additionalFields: {
@@ -78,6 +78,7 @@ export function buildAuthOptions(env: AuthEnv, database: DrizzleDatabase) {
         : {
             customRules: {
               '/sign-in/email': { window: 60, max: 100 },
+              '/sign-up/email': { window: 60, max: 100 },
             },
           }),
     },

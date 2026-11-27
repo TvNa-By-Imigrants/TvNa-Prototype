@@ -78,10 +78,9 @@ describe('PermissionsProvider', () => {
     )
   })
 
-  it('does not request the session endpoint on the sign-in page', async () => {
-    routerLocation.pathname = '/sign-in'
-    const fetch = vi.fn()
-    vi.stubGlobal('fetch', fetch)
+  it('asks for the dialog instead of reloading when the session dies', async () => {
+    mockMe(null)
+    const dispatch = vi.spyOn(window, 'dispatchEvent')
 
     render(
       <PermissionsProvider>
@@ -89,7 +88,20 @@ describe('PermissionsProvider', () => {
       </PermissionsProvider>,
     )
 
-    expect(screen.getByTestId('state').textContent).toBe('undefined:false:false')
-    expect(fetch).not.toHaveBeenCalled()
+    await waitFor(() =>
+      expect(screen.getByTestId('state').textContent).toBe(
+        'undefined:false:false',
+      ),
+    )
+
+    window.dispatchEvent(new Event('auth:unauthorized'))
+
+    // No page navigation: the dialog is the only auth surface.
+    await waitFor(() =>
+      expect(dispatch.mock.calls.some(([e]) => e.type === 'auth:open-dialog')).toBe(
+        true,
+      ),
+    )
+    dispatch.mockRestore()
   })
 })

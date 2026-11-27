@@ -1,9 +1,9 @@
-import { Link } from "@tanstack/react-router"
 import { SparklesIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { useLanguage } from "@/i18n"
+import { openAuthDialog } from "@/lib/auth-dialog"
 import { usePermissions } from "@/lib/permissions"
 
 export function GuestPlanBanner() {
@@ -29,14 +29,16 @@ export function GuestPlanBanner() {
           </div>
         </div>
         <div className="flex shrink-0 gap-2">
-          <Link to="/sign-in">
-            <Button variant="outline" size="sm">
-              {t("guest.signIn")}
-            </Button>
-          </Link>
-          <Link to="/sign-in">
-            <Button size="sm">{t("guest.signUp")}</Button>
-          </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => openAuthDialog("login")}
+          >
+            {t("guest.signIn")}
+          </Button>
+          <Button size="sm" onClick={() => openAuthDialog("register")}>
+            {t("guest.signUp")}
+          </Button>
         </div>
       </CardContent>
     </Card>

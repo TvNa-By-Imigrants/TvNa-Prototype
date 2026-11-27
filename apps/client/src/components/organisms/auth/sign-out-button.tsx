@@ -13,7 +13,9 @@ export function SignOutButton({ label }: { label: string }) {
     try {
       await signOut();
     } finally {
-      await navigate({ to: '/sign-in' });
+      // This bar only exists on signed-in-only pages, which cannot render
+      // without a session, so they fall back home.
+      await navigate({ to: '/' });
     }
   };
 

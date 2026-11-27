@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -9,6 +10,7 @@ import {
 import { useLocation } from '@tanstack/react-router';
 import type { SessionUser } from '@repo/contracts';
 import { apiRequest, AUTH_UNAUTHORIZED_EVENT } from './api';
+import { openAuthDialog } from './auth-dialog';
 
 export type { SessionUser };
 
@@ -17,6 +19,8 @@ export interface PermissionsValue {
   permissions: readonly string[];
   isLoading: boolean;
   has: (permission: string) => boolean;
+  /** Re-reads the session. Call after sign-in / sign-up so the header updates. */
+  refresh: () => Promise<void>;
 }
 
 const PermissionsContext = createContext<PermissionsValue | null>(null);
@@ -26,18 +30,22 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const refresh = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await apiRequest<{ user: SessionUser }>('/api/me', {
+        redirectOnUnauthorized: false,
+      });
+      setUser(data.user);
+    } catch {
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     let active = true;
-
-    // Anonymous users are expected on the sign-in page. Avoid probing /api/me
-    // there; a 401 is normal and must not trigger the global sign-in redirect.
-    if (location.pathname === '/sign-in') {
-      setUser(null);
-      setIsLoading(false);
-      return () => {
-        active = false;
-      };
-    }
 
     setIsLoading(true);
 
@@ -60,9 +68,11 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
   }, [location.pathname]);
 
   useEffect(() => {
+    // A dead session asks for the dialog instead of reloading into a page, so
+    // the user keeps their place (and the trip stops held in memory).
     const onUnauthorized = () => {
       setUser(null);
-      window.location.assign('/sign-in');
+      openAuthDialog('login');
     };
     window.addEventListener(AUTH_UNAUTHORIZED_EVENT, onUnauthorized);
     return () => {
@@ -77,8 +87,9 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
       permissions,
       isLoading,
       has: (permission: string) => permissions.includes(permission),
+      refresh,
     };
-  }, [user, isLoading]);
+  }, [user, isLoading, refresh]);
 
   return (
     <PermissionsContext.Provider value={value}>
