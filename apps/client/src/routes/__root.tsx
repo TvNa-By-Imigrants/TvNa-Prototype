@@ -4,6 +4,7 @@ import { Toaster } from 'sonner'
 import { LanguageProvider } from '@/i18n'
 import { PermissionsProvider } from '@/lib/permissions'
 import { PlanProvider } from '@/lib/plan-context'
+import { ProfileProvider } from '@/lib/profile-context'
 import { AppShell } from '@/components/shell'
 
 function RootLayout() {
@@ -11,12 +12,14 @@ function RootLayout() {
     <LanguageProvider>
       <PermissionsProvider>
         <PlanProvider>
-          <ScrollRestoration />
-          <AppShell>
-            <Outlet />
-          </AppShell>
-          <Toaster richColors position="bottom-right" />
-          <TanStackRouterDevtools />
+          <ProfileProvider>
+            <ScrollRestoration />
+            <AppShell>
+              <Outlet />
+            </AppShell>
+            <Toaster richColors position="bottom-right" />
+            <TanStackRouterDevtools />
+          </ProfileProvider>
         </PlanProvider>
       </PermissionsProvider>
     </LanguageProvider>

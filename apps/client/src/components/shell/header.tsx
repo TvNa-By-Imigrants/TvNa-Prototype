@@ -1,21 +1,26 @@
+import { useNavigate } from "@tanstack/react-router"
 import {
   GlobeIcon,
   LogOutIcon,
   MoonIcon,
+  PencilIcon,
   SearchIcon,
   SunIcon,
+  UserRoundIcon,
   XIcon,
 } from "lucide-react"
-import { useState } from "react"
+import { useState, type RefObject } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -27,6 +32,7 @@ import {
 import type { AuthMode } from "@/components/organisms/auth/auth-dialog"
 import { languages, useLanguage, type Language } from "@/i18n"
 import { usePermissions } from "@/lib/permissions"
+import { useProfileContext } from "@/lib/profile-context"
 import { cn } from "@/lib/utils"
 
 import { Logo } from "./logo"
@@ -141,20 +147,59 @@ function AuthButtons({
   size = "lg",
   onAuthAction,
   onSignOut,
+  onEditProfile,
 }: {
   size?: "sm" | "lg"
   onAuthAction: (mode: AuthMode) => void
   onSignOut: () => void
+  onEditProfile: () => void
 }) {
   const { t } = useLanguage()
   const { user } = usePermissions()
+  const { getOwnerProfile } = useProfileContext()
+  const navigate = useNavigate()
 
   if (user) {
     return (
-      <Button variant="ghost" size={size} onClick={onSignOut}>
-        <LogOutIcon data-icon="inline-start" />
-        <span className="truncate">{user.name || user.email}</span>
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button variant="ghost" size={size} className="max-w-40" />
+          }
+        >
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+            <UserRoundIcon className="size-4" />
+          </span>
+          <span className="truncate">{user.name || user.email}</span>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className="truncate">
+              {user.name || user.email}
+            </DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() =>
+                navigate({
+                  to: "/profile",
+                  search: { handle: getOwnerProfile()?.handle ?? "" },
+                })
+              }
+            >
+              <UserRoundIcon data-icon="inline-start" />
+              {t("profile.myProfile")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onEditProfile}>
+              <PencilIcon data-icon="inline-start" />
+              {t("profile.editProfile")}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onSignOut}>
+              <LogOutIcon data-icon="inline-start" />
+              {t("auth.signOut")}
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
     )
   }
 
@@ -173,6 +218,9 @@ function AuthButtons({
 export type HeaderProps = NavProps & {
   onAuthAction: (mode: AuthMode) => void
   onSignOut: () => void
+  onEditProfile: () => void
+  /** AppShell measures this element to publish --header-h for sticky tabs. */
+  headerRef?: RefObject<HTMLElement | null>
 }
 
 /**
@@ -183,9 +231,14 @@ export function Header({
   className,
   onAuthAction,
   onSignOut,
+  onEditProfile,
+  headerRef,
 }: HeaderProps) {
   return (
-    <header className={cn("sticky top-0 z-40 border-b border-border bg-card", className)}>
+    <header
+      ref={headerRef}
+      className={cn("sticky top-0 z-40 border-b border-border bg-card", className)}
+    >
       {/* Desktop */}
       <div className="mx-auto hidden h-16 w-full max-w-7xl items-center justify-between gap-6 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] lg:flex">
         <div className="flex items-center gap-8">
@@ -196,7 +249,11 @@ export function Header({
           <SearchBar className="w-64" />
           <ThemeToggle />
           <LanguageSwitcher />
-          <AuthButtons onAuthAction={onAuthAction} onSignOut={onSignOut} />
+          <AuthButtons
+            onAuthAction={onAuthAction}
+            onSignOut={onSignOut}
+            onEditProfile={onEditProfile}
+          />
         </div>
       </div>
 
@@ -205,7 +262,12 @@ export function Header({
         <div className="flex items-center justify-between gap-2">
           <Logo />
           <div className="flex items-center gap-1">
-            <AuthButtons size="sm" onAuthAction={onAuthAction} onSignOut={onSignOut} />
+            <AuthButtons
+              size="sm"
+              onAuthAction={onAuthAction}
+              onSignOut={onSignOut}
+              onEditProfile={onEditProfile}
+            />
             <LanguageSwitcher />
           </div>
         </div>

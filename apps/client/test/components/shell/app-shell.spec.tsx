@@ -4,6 +4,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AppShell } from '@/components/shell/app-shell'
 import { LanguageProvider } from '@/i18n'
+import { ProfileProvider } from '@/lib/profile-context'
 import { signOut } from '@/lib/auth'
 import { openAuthDialog } from '@/lib/auth-dialog'
 import { appEn } from '@/i18n/app-en'
@@ -48,18 +49,21 @@ const mockedSignOut = vi.mocked(signOut)
 function renderShell() {
   return render(
     <LanguageProvider>
-      <AppShell>
-        <p>page content</p>
-      </AppShell>
+      <ProfileProvider>
+        <AppShell>
+          <p>page content</p>
+        </AppShell>
+      </ProfileProvider>
     </LanguageProvider>,
   )
 }
 
 /** Open the logout dialog from the signed-in header, then confirm. */
 async function confirmSignOut(user: ReturnType<typeof userEvent.setup>) {
-  // The header button is labelled with the user's name.
+  // The header button opens an account menu; sign-out is an item in it.
   // The header mounts twice (mobile + desktop rows).
   await user.click(screen.getAllByRole('button', { name: /Sok/ })[0])
+  await user.click(await screen.findByRole('menuitem', { name: appEn.auth.signOut }))
   await user.click(
     await screen.findByRole('button', { name: appEn.auth.logoutConfirm }),
   )

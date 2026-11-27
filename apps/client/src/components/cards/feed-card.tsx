@@ -1,4 +1,11 @@
-import { BadgeCheckIcon, EyeIcon, MessageCircleIcon, ThumbsUpIcon } from "lucide-react"
+import { useNavigate } from "@tanstack/react-router"
+import {
+  BadgeCheckIcon,
+  EyeIcon,
+  MapPinIcon,
+  MessageCircleIcon,
+  ThumbsUpIcon,
+} from "lucide-react"
 
 import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { Button } from "@/components/ui/button"
@@ -10,7 +17,10 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import type { FeedPost } from "@/data"
+import { normalizeHandle } from "@/data/profiles"
 import { useLanguage } from "@/i18n"
+import { openAuthDialog } from "@/lib/auth-dialog"
+import { usePermissions } from "@/lib/permissions"
 import { cn } from "@/lib/utils"
 
 function formatCount(count: number): string {
@@ -21,26 +31,69 @@ function formatCount(count: number): string {
   return String(count)
 }
 
+export type FeedCardProps = {
+  post: FeedPost
+  className?: string
+  /** `full` reorders the card for a one-column feed; grid keeps photo first. */
+  variant?: "grid" | "full"
+}
+
 /**
  * Social / promo feed card built strictly with shadcn primitives:
  * Card + AspectRatio + Button.
  */
-export function FeedCard({ post, className }: { post: FeedPost; className?: string }) {
+export function FeedCard({
+  post,
+  className,
+  variant = "grid",
+}: FeedCardProps) {
   const { t } = useLanguage()
+  const navigate = useNavigate()
+  const { user } = usePermissions()
+  const full = variant === "full"
+
+  // Browsing an author is a signed-in feature; an anonymous visitor gets the
+  // login prompt instead of a dead profile page.
+  const openAuthor = () => {
+    if (!post.author.handle) return
+    if (!user) {
+      openAuthDialog("login")
+      return
+    }
+    navigate({
+      to: "/profile",
+      search: { handle: normalizeHandle(post.author.handle) },
+    })
+  }
+
+  const photo = (
+    <AspectRatio
+      ratio={16 / 9}
+      className={cn(
+        "overflow-hidden bg-muted",
+        full ? "mx-4 rounded-lg" : "rounded-t-xl",
+      )}
+    >
+      <img
+        src={post.image}
+        alt={post.title}
+        loading="lazy"
+        className="size-full object-cover"
+      />
+    </AspectRatio>
+  )
 
   return (
     <Card className={cn("h-full pt-0", className)}>
-      <AspectRatio ratio={16 / 9} className="overflow-hidden rounded-t-xl bg-muted">
-        <img
-          src={post.image}
-          alt={post.title}
-          loading="lazy"
-          className="size-full object-cover"
-        />
-      </AspectRatio>
+      {full ? null : photo}
 
-      <CardHeader>
-        <div className="flex items-center gap-2">
+      <CardHeader className={cn(full && "pt-4")}>
+        <button
+          type="button"
+          onClick={openAuthor}
+          disabled={!post.author.handle}
+          className="flex w-fit items-center gap-2 text-left disabled:cursor-default"
+        >
           {post.author.avatar ? (
             <img
               src={post.author.avatar}
@@ -64,13 +117,24 @@ export function FeedCard({ post, className }: { post: FeedPost; className?: stri
               className="size-4 text-primary"
             />
           ) : null}
-        </div>
+          {full && post.timestamp ? (
+            <span className="text-xs text-muted-foreground">· {post.timestamp}</span>
+          ) : null}
+        </button>
 
-        <CardTitle className="line-clamp-1">{post.title}</CardTitle>
-        <CardDescription className="line-clamp-2">
+        <CardTitle className={cn(!full && "line-clamp-1")}>{post.title}</CardTitle>
+        <CardDescription className={cn(!full && "line-clamp-2")}>
           {post.description}
         </CardDescription>
+        {full && post.location ? (
+          <p className="flex items-center gap-1 text-xs text-muted-foreground">
+            <MapPinIcon aria-hidden="true" className="size-3.5 shrink-0" />
+            {post.location}
+          </p>
+        ) : null}
       </CardHeader>
+
+      {full ? photo : null}
 
       <CardFooter className="mt-auto gap-1 bg-transparent p-1">
         <Button

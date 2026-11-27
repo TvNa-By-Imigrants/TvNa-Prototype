@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { useNavigate, useRouterState } from "@tanstack/react-router"
 
 import {
@@ -6,9 +6,11 @@ import {
   LogoutDialog,
   type AuthMode,
 } from "@/components/organisms/auth/auth-dialog"
+import { EditProfileDialog } from "@/components/page/profile"
 import { signOut } from "@/lib/auth"
 import { onAuthDialogRequest, takeAuthDialogRequest } from "@/lib/auth-dialog"
 import { usePermissions } from "@/lib/permissions"
+import { useProfileContext } from "@/lib/profile-context"
 
 import { Header } from "./header"
 import { BottomNav } from "./nav"
@@ -24,10 +26,30 @@ export type AppShellProps = {
  */
 export function AppShell({ children }: AppShellProps) {
   const navigate = useNavigate()
-  const { refresh } = usePermissions()
+  const { refresh, user } = usePermissions()
+  const { getOwnerProfile } = useProfileContext()
   const [authMode, setAuthMode] = useState<AuthMode | null>(null)
   const [logoutOpen, setLogoutOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
+  const [editProfileOpen, setEditProfileOpen] = useState(false)
+  const shellRef = useRef<HTMLDivElement>(null)
+  const headerRef = useRef<HTMLElement | null>(null)
+  const ownerProfile = getOwnerProfile()
+
+  // The mobile header is content-height and changes with Khmer wrapping, font
+  // loading and zoom. Publish its measured height for the sticky tabs to use.
+  useEffect(() => {
+    const header = headerRef.current
+    const shell = shellRef.current
+    if (!header || !shell || typeof ResizeObserver === "undefined") return
+
+    const publish = () =>
+      shell.style.setProperty("--header-h", `${header.getBoundingClientRect().height}px`)
+    publish()
+    const observer = new ResizeObserver(publish)
+    observer.observe(header)
+    return () => observer.disconnect()
+  }, [])
 
   // Route guards and inline links ask for the dialog through this event, so
   // they never need to know the shell exists.
@@ -68,10 +90,12 @@ export function AppShell({ children }: AppShellProps) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div ref={shellRef} className="flex min-h-screen flex-col bg-background text-foreground">
       <Header
         onAuthAction={setAuthMode}
         onSignOut={() => setLogoutOpen(true)}
+        onEditProfile={() => setEditProfileOpen(true)}
+        headerRef={headerRef}
       />
       <main className="mx-auto w-full max-w-7xl flex-1 pt-6 pb-24 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] lg:pt-8 lg:pb-10 sm:pl-[max(1.5rem,env(safe-area-inset-left))] sm:pr-[max(1.5rem,env(safe-area-inset-right))]">
         {children}
@@ -91,6 +115,14 @@ export function AppShell({ children }: AppShellProps) {
         onOpenChange={setLogoutOpen}
         onConfirm={handleSignOut}
       />
+
+      {user && ownerProfile ? (
+        <EditProfileDialog
+          open={editProfileOpen}
+          onOpenChange={setEditProfileOpen}
+          profile={ownerProfile}
+        />
+      ) : null}
     </div>
   )
 }
