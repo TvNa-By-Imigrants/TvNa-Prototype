@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event'
 import { AuthDialog } from '@/components/organisms/auth/auth-dialog'
 import { LanguageProvider } from '@/i18n'
 import { appEn } from '@/i18n/app-en'
+import { NAME_MAX_LENGTH } from '@/lib/validations/auth'
 
 const signInMock = vi.fn()
 const signUpMock = vi.fn()
@@ -128,6 +129,46 @@ describe('AuthDialog', () => {
     // One toast per failed submit, since the field errors are hidden on mobile.
     expect(toastError).toHaveBeenCalledTimes(1)
     expect(toastError.mock.calls[0][0]).toMatch(/check your details/i)
+  })
+
+  it('rejects a name with symbols or digits', async () => {
+    const user = userEvent.setup()
+    renderDialog('register')
+
+    await user.type(screen.getByLabelText(appEn.auth.name), 'Sok <b>98</b>')
+    await user.type(screen.getByLabelText(/email/i), 'dara@example.com')
+    await user.type(screen.getByLabelText(/^password/i), 'password123')
+    await user.type(screen.getByLabelText(/confirm password/i), 'password123')
+    await user.click(screen.getByRole('checkbox', { name: /terms of use/i }))
+    await user.click(screen.getByRole('button', { name: /create account/i }))
+
+    expect(signUpMock).not.toHaveBeenCalled()
+    expect(screen.getByText(appEn.auth.errNameInvalid)).toBeTruthy()
+  })
+
+  it('accepts Khmer names and caps the field at the name limit', async () => {
+    signUpMock.mockResolvedValue({ ok: true })
+    const user = userEvent.setup()
+    renderDialog('register')
+
+    const nameInput = screen.getByLabelText(appEn.auth.name) as HTMLInputElement
+    expect(nameInput.maxLength).toBe(NAME_MAX_LENGTH)
+
+    // Khmer letters carry combining marks; the pattern must allow them.
+    await user.type(nameInput, 'សុខ ដារា')
+    await user.type(screen.getByLabelText(/email/i), 'dara@example.com')
+    await user.type(screen.getByLabelText(/^password/i), 'password123')
+    await user.type(screen.getByLabelText(/confirm password/i), 'password123')
+    await user.click(screen.getByRole('checkbox', { name: /terms of use/i }))
+    await user.click(screen.getByRole('button', { name: /create account/i }))
+
+    await waitFor(() =>
+      expect(signUpMock).toHaveBeenCalledWith(
+        'សុខ ដារា',
+        'dara@example.com',
+        'password123',
+      ),
+    )
   })
 
   it('rejects mismatched passwords on register', async () => {

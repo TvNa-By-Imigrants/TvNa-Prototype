@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils"
 import {
   createLoginSchema,
   createRegisterSchema,
+  NAME_MAX_LENGTH,
   type AuthMessages,
 } from "@/lib/validations/auth"
 
@@ -42,6 +43,8 @@ export type AuthDialogProps = {
 
 const messagesFor = (t: (key: TranslationKey) => string): AuthMessages => ({
   nameRequired: t("auth.errNameRequired"),
+  nameTooLong: t("auth.errNameLong"),
+  nameInvalid: t("auth.errNameInvalid"),
   emailRequired: t("auth.errEmailRequired"),
   emailInvalid: t("auth.errEmailInvalid"),
   passwordRequired: t("auth.errPasswordRequired"),
@@ -232,6 +235,7 @@ export function AuthDialog({
                     className={inputClass}
                     autoComplete="name"
                     placeholder={t("auth.namePlaceholder")}
+                    maxLength={NAME_MAX_LENGTH}
                     value={values.name ?? ""}
                     aria-invalid={!!errors.name}
                     onChange={(event) => setValue("name", event.target.value)}

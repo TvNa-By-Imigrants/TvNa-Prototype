@@ -38,6 +38,8 @@ export const appKm: TranslationDictionary = {
     logoutConfirm: "ចាកចេញ",
     logoutCancel: "នៅបន្តចូល",
     errNameRequired: "សូមបញ្ចូលឈ្មោះរបស់អ្នក។",
+    errNameLong: "សូមប្រើមិនលើសពី ៣០ តួអក្សរ។",
+    errNameInvalid: "សូមប្រើតែអក្សរ និងចន្លោះប៉ុណ្ណោះ។",
     errEmailRequired: "សូមបញ្ចូលអ៊ីមែលរបស់អ្នក។",
     errEmailInvalid: "សូមបញ្ចូលអ៊ីមែលឲ្យបានត្រឹមត្រូវ។",
     errPasswordRequired: "សូមបញ្ចូលពាក្យសម្ងាត់។",

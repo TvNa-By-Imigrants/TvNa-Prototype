@@ -36,6 +36,8 @@ export const appEn = {
     logoutConfirm: "Sign out",
     logoutCancel: "Stay signed in",
     errNameRequired: "Enter your name.",
+    errNameLong: "Use 30 characters or fewer.",
+    errNameInvalid: "Use letters and spaces only.",
     errEmailRequired: "Enter your email address.",
     errEmailInvalid: "Enter a valid email address.",
     errPasswordRequired: "Enter your password.",
