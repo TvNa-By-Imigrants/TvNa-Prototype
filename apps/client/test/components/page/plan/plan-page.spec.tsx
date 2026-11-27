@@ -11,6 +11,7 @@ import {
   deletePlan,
   fetchPlanById,
   fetchPlans,
+  sharePlan,
   updatePlan,
 } from '@/lib/plans-api';
 
@@ -28,6 +29,7 @@ vi.mock('@/lib/plans-api', () => ({
   deletePlan: vi.fn(),
   fetchPlanById: vi.fn(),
   fetchPlans: vi.fn(),
+  sharePlan: vi.fn(),
   updatePlan: vi.fn(),
 }));
 
@@ -98,6 +100,7 @@ const mockedCreatePlan = vi.mocked(createPlan);
 const mockedDeletePlan = vi.mocked(deletePlan);
 const mockedFetchPlanById = vi.mocked(fetchPlanById);
 const mockedFetchPlans = vi.mocked(fetchPlans);
+const mockedSharePlan = vi.mocked(sharePlan);
 const mockedUpdatePlan = vi.mocked(updatePlan);
 
 function renderPlanPage() {
@@ -124,6 +127,7 @@ describe('PlanPage', () => {
     localStorage.removeItem('tvna.plan.stops');
     vi.clearAllMocks();
     mockedFetchPlans.mockResolvedValue({ plans: [] });
+    mockedSharePlan.mockResolvedValue({ token: 'a'.repeat(43) });
   });
 
   afterEach(() => {

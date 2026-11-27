@@ -137,7 +137,9 @@ export const appEn = {
     copied: "Link copied!",
     permission: "Anyone with the link",
     viewOnly: "View only",
-    errorTooLong: "This plan is too large to share as a link.",
+    saveFirst: "Save this plan before generating a share link.",
+    generating: "Generating share link…",
+    errorGenerating: "Unable to generate a share link. Please try again.",
   },
   guest: {
     title: "Shared plan",
@@ -145,6 +147,7 @@ export const appEn = {
     viewOnly: "View only",
     invalidTitle: "This link isn't valid",
     invalidHint: "The shared plan may be incomplete or no longer available.",
+    loading: "Loading shared plan…",
     backHome: "Back to Home",
     bannerTitle: "Want your own plan?",
     bannerText: "Sign up or log in to discover places and build your own itinerary.",
