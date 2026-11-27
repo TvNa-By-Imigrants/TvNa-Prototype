@@ -6,9 +6,6 @@ import type { PlanStopItem } from "@/lib/plan-context"
 import { fetchSharedPlan } from "@/lib/plans-api"
 
 export const Route = createFileRoute("/shared/$token")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    d: typeof search.d === "string" ? search.d : "",
-  }),
   component: SharedRoute,
 })
 
