@@ -6,6 +6,7 @@ import { PlanPage } from '@/components/page/plan';
 import { LanguageProvider } from '@/i18n';
 import { PlanProvider, reorderStopList, type PlanStopItem } from '@/lib/plan-context';
 import { ApiRequestError } from '@/lib/api';
+import { openAuthDialog } from '@/lib/auth-dialog';
 import {
   createPlan,
   deletePlan,
@@ -14,9 +15,11 @@ import {
   updatePlan,
 } from '@/lib/plans-api';
 
+const session = vi.hoisted(() => ({ user: { id: 'user-1' } as unknown }));
+
 vi.mock('@/lib/permissions', () => ({
   usePermissions: () => ({
-    user: { id: 'user-1' },
+    user: session.user,
     isLoading: false,
     permissions: [],
     has: () => false,
@@ -35,6 +38,10 @@ vi.mock('@tanstack/react-router', () => ({
   Link: ({ children, ...props }: { children: React.ReactNode } & Record<string, unknown>) => (
     <a {...props}>{children}</a>
   ),
+}))
+
+vi.mock('@/lib/auth-dialog', () => ({
+  openAuthDialog: vi.fn(),
 }));
 
 const stopOne: PlanStopItem = {
@@ -426,5 +433,19 @@ describe('PlanPage', () => {
         alert.textContent?.includes('End time must be after start time'),
       ),
     ).toBe(true);
+  });
+
+  it('opens the dialog in place for a guest instead of linking to a page', async () => {
+    session.user = null;
+    try {
+      const user = userEvent.setup();
+      renderPlanPage();
+
+      await user.click(await screen.findByRole('button', { name: /sign in/i }));
+
+      expect(openAuthDialog).toHaveBeenCalledWith('login');
+    } finally {
+      session.user = { id: 'user-1' };
+    }
   });
 });

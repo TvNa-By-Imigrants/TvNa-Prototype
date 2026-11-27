@@ -1,6 +1,6 @@
-import { Link } from "@tanstack/react-router"
 import {
   GlobeIcon,
+  LogOutIcon,
   MoonIcon,
   SearchIcon,
   SunIcon,
@@ -24,6 +24,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group"
+import type { AuthMode } from "@/components/organisms/auth/auth-dialog"
 import { languages, useLanguage, type Language } from "@/i18n"
 import { usePermissions } from "@/lib/permissions"
 import { cn } from "@/lib/utils"
@@ -136,41 +137,53 @@ function ThemeToggle() {
   )
 }
 
-function AuthButtons({ size = "lg" }: { size?: "sm" | "lg" }) {
+function AuthButtons({
+  size = "lg",
+  onAuthAction,
+  onSignOut,
+}: {
+  size?: "sm" | "lg"
+  onAuthAction: (mode: AuthMode) => void
+  onSignOut: () => void
+}) {
   const { t } = useLanguage()
   const { user } = usePermissions()
 
   if (user) {
     return (
-      <Link to="/pokemon">
-        <Button variant="ghost" size={size}>
-          {user.name || user.email}
-        </Button>
-      </Link>
+      <Button variant="ghost" size={size} onClick={onSignOut}>
+        <LogOutIcon data-icon="inline-start" />
+        <span className="truncate">{user.name || user.email}</span>
+      </Button>
     )
   }
 
   return (
     <div className="flex items-center gap-1.5">
-      <Link to="/sign-in">
-        <Button variant="ghost" size={size}>
-          {t("header.login")}
-        </Button>
-      </Link>
-      <Link to="/sign-in">
-        <Button size={size}>
-          {t("header.register")}
-        </Button>
-      </Link>
+      <Button variant="ghost" size={size} onClick={() => onAuthAction("login")}>
+        {t("header.login")}
+      </Button>
+      <Button size={size} onClick={() => onAuthAction("register")}>
+        {t("header.register")}
+      </Button>
     </div>
   )
+}
+
+export type HeaderProps = NavProps & {
+  onAuthAction: (mode: AuthMode) => void
+  onSignOut: () => void
 }
 
 /**
  * Sticky app chrome. Mobile: two rows (brand + auth/lang, then search + theme).
  * Desktop (`lg`): a single row with the primary nav promoted into the header.
  */
-export function Header({ className }: NavProps) {
+export function Header({
+  className,
+  onAuthAction,
+  onSignOut,
+}: HeaderProps) {
   return (
     <header className={cn("sticky top-0 z-40 border-b border-border bg-card", className)}>
       {/* Desktop */}
@@ -183,7 +196,7 @@ export function Header({ className }: NavProps) {
           <SearchBar className="w-64" />
           <ThemeToggle />
           <LanguageSwitcher />
-          <AuthButtons />
+          <AuthButtons onAuthAction={onAuthAction} onSignOut={onSignOut} />
         </div>
       </div>
 
@@ -192,7 +205,7 @@ export function Header({ className }: NavProps) {
         <div className="flex items-center justify-between gap-2">
           <Logo />
           <div className="flex items-center gap-1">
-            <AuthButtons size="sm" />
+            <AuthButtons size="sm" onAuthAction={onAuthAction} onSignOut={onSignOut} />
             <LanguageSwitcher />
           </div>
         </div>

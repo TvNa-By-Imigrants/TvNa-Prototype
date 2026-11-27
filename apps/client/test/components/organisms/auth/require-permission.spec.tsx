@@ -17,6 +17,7 @@ function mockPermissions(has: (permission: string) => boolean, isLoading = false
     permissions: [],
     isLoading,
     has,
+    refresh: vi.fn(),
   })
 }
 

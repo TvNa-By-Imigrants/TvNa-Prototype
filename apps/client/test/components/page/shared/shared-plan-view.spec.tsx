@@ -1,14 +1,20 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SharedPlanView } from '@/components/page/shared';
 import { LanguageProvider } from '@/i18n';
-import { usePermissions } from '@/lib/permissions';
+import { usePermissions } from '@/lib/permissions'
+import { openAuthDialog } from '@/lib/auth-dialog';
 import type { PlanStopItem } from '@/lib/plan-context';
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children, ...props }: { children: React.ReactNode } & Record<string, unknown>) => (
     <a {...props}>{children}</a>
   ),
+}))
+
+vi.mock('@/lib/auth-dialog', () => ({
+  openAuthDialog: vi.fn(),
 }));
 
 vi.mock('@/lib/permissions', () => ({
@@ -45,6 +51,7 @@ describe('SharedPlanView', () => {
       permissions: [],
       isLoading: false,
       has: () => false,
+    refresh: vi.fn(),
     });
   });
 
@@ -71,10 +78,21 @@ describe('SharedPlanView', () => {
       permissions: [],
       isLoading: false,
       has: () => false,
+    refresh: vi.fn(),
     });
     renderGuest();
     expect(screen.queryByText(/want your own plan/i)).toBeNull();
   });
+
+  it('opens the dialog in place instead of linking to a sign-in page', async () => {
+    renderGuest()
+
+    await userEvent.click(screen.getByRole('button', { name: /sign in/i }))
+    expect(openAuthDialog).toHaveBeenCalledWith('login')
+
+    await userEvent.click(screen.getByRole('button', { name: /sign up/i }))
+    expect(openAuthDialog).toHaveBeenCalledWith('register')
+  })
 
   it('shows a fallback for an invalid shared plan', () => {
     renderGuest(null);
