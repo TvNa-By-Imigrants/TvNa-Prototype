@@ -120,10 +120,14 @@ export const dayPlan = pgTable(
       .references(() => user.id, { onDelete: 'cascade' })
       .notNull(),
     title: text('title').notNull(),
+    shareTokenHash: text('share_token_hash'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
-  (t) => [index('day_plan_user_id_idx').on(t.userId)],
+  (t) => [
+    index('day_plan_user_id_idx').on(t.userId),
+    uniqueIndex('day_plan_share_token_hash_idx').on(t.shareTokenHash),
+  ],
 );
 
 export const itineraryItem = pgTable(

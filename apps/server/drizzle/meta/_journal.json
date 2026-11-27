@@ -29,6 +29,13 @@
       "when": 1795671624796,
       "tag": "0003_plan_itinerary_management",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795761984637,
+      "tag": "0004_flat_cobalt_man",
+      "breakpoints": true
     }
   ]
 }
