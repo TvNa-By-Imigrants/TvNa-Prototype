@@ -60,7 +60,7 @@ describe('buildAuthOptions', () => {
     });
   });
 
-  it('enables email registration and registers admin + bearer plugins', () => {
+  it('enables public sign-ups and registers admin + bearer plugins', () => {
     const options = buildAuthOptions({}, fakeDatabase);
 
     expect(options.emailAndPassword).toEqual({
