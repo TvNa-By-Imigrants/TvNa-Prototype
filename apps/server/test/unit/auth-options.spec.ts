@@ -63,7 +63,10 @@ describe('buildAuthOptions', () => {
   it('enables email registration and registers admin + bearer plugins', () => {
     const options = buildAuthOptions({}, fakeDatabase);
 
-    expect(options.emailAndPassword).toEqual({ enabled: true });
+    expect(options.emailAndPassword).toEqual({
+      enabled: true,
+      disableSignUp: false,
+    });
     expect(options.plugins).toHaveLength(2);
   });
 

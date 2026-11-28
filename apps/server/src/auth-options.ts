@@ -52,6 +52,7 @@ export function buildAuthOptions(env: AuthEnv, database: DrizzleDatabase) {
     ],
     emailAndPassword: {
       enabled: true,
+      disableSignUp: false,
     },
     user: {
       additionalFields: {
