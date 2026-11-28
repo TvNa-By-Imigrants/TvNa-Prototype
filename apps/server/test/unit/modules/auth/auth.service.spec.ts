@@ -3,12 +3,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('../../../../src/auth.ts', () => ({ auth: {} }));
 
 import { Logger } from '@nestjs/common';
+import { APIError } from 'better-auth/api';
 import { AppAuthService } from '../../../../src/modules/auth/auth.service.ts';
 
 function createService() {
   const api = {
     listSessions: vi.fn(),
     revokeSession: vi.fn(),
+    signUpEmail: vi.fn(),
+    signInEmail: vi.fn(),
+    getSession: vi.fn(),
   };
   const service = new AppAuthService({ api } as never);
   return { service, api };
@@ -19,6 +23,132 @@ beforeEach(() => {
 });
 
 describe('AppAuthService', () => {
+  it('registers a user and returns the Better Auth session token', async () => {
+    const { service, api } = createService();
+    api.signUpEmail.mockResolvedValue({
+      token: 'new-session',
+      user: { id: 'u1', name: 'Ada', email: 'ada@b.test' },
+    });
+
+    await expect(
+      service.register(
+        {
+          email: 'ada@b.test',
+          password: 'Password1!',
+          name: 'Ada',
+        },
+        { 'user-agent': 'test-agent' },
+      ),
+    ).resolves.toEqual({
+      token: 'new-session',
+      user: { id: 'u1', name: 'Ada', email: 'ada@b.test' },
+    });
+    expect(api.signUpEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: {
+          email: 'ada@b.test',
+          password: 'Password1!',
+          name: 'Ada',
+        },
+        headers: expect.any(Headers),
+      }),
+    );
+  });
+
+  it('maps duplicate registration errors to EMAIL_TAKEN', async () => {
+    const { service, api } = createService();
+    api.signUpEmail.mockRejectedValue(
+      APIError.from('UNPROCESSABLE_ENTITY', {
+        code: 'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL',
+        message: 'User exists',
+      }),
+    );
+
+    await expect(
+      service.register(
+        { email: 'ada@b.test', password: 'Password1!', name: 'Ada' },
+        {},
+      ),
+    ).rejects.toMatchObject({
+      response: { code: 'EMAIL_TAKEN' },
+      status: 409,
+    });
+  });
+
+  it('maps invalid login credentials to UNAUTHORIZED', async () => {
+    const { service, api } = createService();
+    api.signInEmail.mockRejectedValue(
+      APIError.from('UNAUTHORIZED', {
+        code: 'INVALID_EMAIL_OR_PASSWORD',
+        message: 'Invalid credentials',
+      }),
+    );
+
+    await expect(
+      service.login(
+        { email: 'ada@b.test', password: 'Password1!' },
+        {},
+      ),
+    ).rejects.toMatchObject({
+      response: { code: 'UNAUTHORIZED' },
+      status: 401,
+    });
+  });
+
+  it('verifies sessions without relying on the cookie cache', async () => {
+    const { service, api } = createService();
+    api.getSession.mockResolvedValue({
+      session: {
+        token: 'session-token',
+        expiresAt: new Date('2030-01-01T00:00:00.000Z'),
+      },
+      user: { id: 'u1', name: 'Ada', email: 'ada@b.test' },
+    });
+
+    await expect(service.verifySession({ cookie: 'session=abc' })).resolves.toEqual({
+      token: 'session-token',
+      expiresAt: '2030-01-01T00:00:00.000Z',
+      user: { id: 'u1', name: 'Ada', email: 'ada@b.test' },
+    });
+    expect(api.getSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: { disableCookieCache: true },
+      }),
+    );
+  });
+
+  it('rejects expired or missing sessions with UNAUTHORIZED', async () => {
+    const { service, api } = createService();
+    api.getSession.mockResolvedValue(null);
+
+    await expect(service.verifySession({})).rejects.toMatchObject({
+      response: { code: 'UNAUTHORIZED' },
+      status: 401,
+    });
+  });
+
+  it('revokes the verified session token on logout', async () => {
+    const { service, api } = createService();
+    api.getSession.mockResolvedValue({
+      session: {
+        token: 'session-token',
+        expiresAt: new Date('2030-01-01T00:00:00.000Z'),
+      },
+      user: { id: 'u1', name: 'Ada', email: 'ada@b.test' },
+    });
+    api.revokeSession.mockResolvedValue({ status: true });
+
+    await expect(service.logout({ authorization: 'Bearer session-token' })).resolves.toEqual({
+      success: true,
+    });
+    expect(api.revokeSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: { token: 'session-token' },
+        headers: expect.any(Headers),
+      }),
+    );
+  });
+
   it('lists sessions for the given headers', async () => {
     const { service, api } = createService();
     api.listSessions.mockResolvedValue([{ id: 's1' }]);

@@ -60,13 +60,10 @@ describe('buildAuthOptions', () => {
     });
   });
 
-  it('disables public sign-ups and registers admin + bearer plugins', () => {
+  it('enables email registration and registers admin + bearer plugins', () => {
     const options = buildAuthOptions({}, fakeDatabase);
 
-    expect(options.emailAndPassword).toEqual({
-      enabled: true,
-      disableSignUp: true,
-    });
+    expect(options.emailAndPassword).toEqual({ enabled: true });
     expect(options.plugins).toHaveLength(2);
   });
 
