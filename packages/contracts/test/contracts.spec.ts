@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ERROR_CODES,
+  LoginInputSchema,
+  RegisterInputSchema,
+  authSessionResponseSchema,
+  authTokenResponseSchema,
   errorEnvelopeSchema,
   permissionSchema,
   pokemonListInputSchema,
@@ -32,6 +36,35 @@ describe('error contract', () => {
 });
 
 describe('auth contract', () => {
+  it('validates login and registration inputs and token responses', () => {
+    expect(
+      LoginInputSchema.safeParse({
+        email: 'ada@example.com',
+        password: 'password123',
+      }).success,
+    ).toBe(true);
+    expect(
+      RegisterInputSchema.safeParse({
+        email: 'ada@example.com',
+        password: 'password123',
+        name: 'Ada',
+      }).success,
+    ).toBe(true);
+    expect(
+      authTokenResponseSchema.safeParse({
+        token: 'session-token',
+        user: { id: 'u1', name: 'Ada', email: 'ada@example.com' },
+      }).success,
+    ).toBe(true);
+    expect(
+      authSessionResponseSchema.safeParse({
+        token: 'session-token',
+        expiresAt: '2030-01-01T00:00:00.000Z',
+        user: { id: 'u1', name: 'Ada', email: 'ada@example.com' },
+      }).success,
+    ).toBe(true);
+  });
+
   it('accepts session users with resource:action permissions', () => {
     const result = sessionUserSchema.safeParse({
       id: 'usr_1',

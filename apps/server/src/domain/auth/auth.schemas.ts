@@ -1,11 +1,11 @@
-import { z } from 'zod';
+import {
+  LoginInputSchema as ContractLoginInputSchema,
+  type LoginInput as ContractLoginInput,
+} from '@repo/contracts';
 
-export const LoginInputSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-});
-
-export type LoginInputSchema = z.infer<typeof LoginInputSchema>;
+export const LoginInputSchema = ContractLoginInputSchema;
+export type LoginInputSchema = ContractLoginInput;
+export type LoginInput = ContractLoginInput;
 
 export interface JwtPayload {
   readonly sub: string;
