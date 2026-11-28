@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Inject,
   Post,
   Req,
@@ -37,6 +39,7 @@ export class AuthApiController {
   }
 
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   login(
     @Body(new ZodValidationPipe(LoginInputSchema)) input: LoginInput,
     @Req() req: AuthRequest,
@@ -45,11 +48,13 @@ export class AuthApiController {
   }
 
   @Post('logout')
+  @HttpCode(HttpStatus.OK)
   logout(@Req() req: AuthRequest): Promise<{ success: true }> {
     return this.authService.logout(req.headers);
   }
 
   @Post('refresh')
+  @HttpCode(HttpStatus.OK)
   refresh(@Req() req: AuthRequest): Promise<AuthSessionResponse> {
     return this.authService.refreshSession(req.headers);
   }

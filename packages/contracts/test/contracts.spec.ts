@@ -4,6 +4,7 @@ import {
   ERROR_CODES,
   LoginInputSchema,
   RegisterInputSchema,
+  authSessionResponseSchema,
   authTokenResponseSchema,
   errorEnvelopeSchema,
   permissionSchema,
@@ -52,6 +53,13 @@ describe('auth contract', () => {
     expect(
       authTokenResponseSchema.safeParse({
         token: 'session-token',
+        user: { id: 'u1', name: 'Ada', email: 'ada@example.com' },
+      }).success,
+    ).toBe(true);
+    expect(
+      authSessionResponseSchema.safeParse({
+        token: 'session-token',
+        expiresAt: '2030-01-01T00:00:00.000Z',
         user: { id: 'u1', name: 'Ada', email: 'ada@example.com' },
       }).success,
     ).toBe(true);

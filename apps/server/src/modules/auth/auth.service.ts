@@ -70,6 +70,13 @@ export class AppAuthService {
         body: input,
         headers: this.toWebHeaders(headers),
       });
+      if (!result.token) {
+        throw new InternalServerErrorException({
+          code: ERROR_CODES.INTERNAL_SERVER_ERROR,
+          message: 'Login did not create a session',
+        });
+      }
+
       return {
         token: result.token,
         user: {
@@ -170,11 +177,13 @@ export class AppAuthService {
     }
 
     switch (error.body?.code) {
+      case 'USER_ALREADY_EXISTS':
       case 'USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL':
         throw new ConflictException({
           code: ERROR_CODES.EMAIL_TAKEN,
           message: 'Email already exists',
         });
+      case 'CREDENTIAL_ACCOUNT_NOT_FOUND':
       case 'INVALID_EMAIL_OR_PASSWORD':
       case 'INVALID_TOKEN':
       case 'TOKEN_EXPIRED':
